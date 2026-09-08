@@ -1,0 +1,35 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    # Berjalan otomatis setiap hari pada jam 00:00 UTC (~07:00 WIB)
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Agar bisa ditrigger manual dari tab Actions di GitHub
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase Database via REST Endpoint
+        run: |
+          SUPABASE_URL="${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}"
+          ANON_KEY="${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}"
+          
+          # Fallback jika GitHub Secrets belum diisi
+          if [ -z "$SUPABASE_URL" ]; then
+            SUPABASE_URL="https://urezyxwovgycpzcfvwko.supabase.co"
+          fi
+          if [ -z "$ANON_KEY" ]; then
+            ANON_KEY="your-supabase-anon-key"
+          fi
+          
+          echo "Pinging Supabase REST API & PostgreSQL query..."
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "apikey: $ANON_KEY" -H "Authorization: Bearer $ANON_KEY" "$SUPABASE_URL/rest/v1/villages?select=id&limit=1")
+          echo "HTTP Response Status Code: $HTTP_CODE"
+          
+          if [ "$HTTP_CODE" -eq 200 ]; then
+            echo "Berhasil! Database Supabase aktif dan query PostgreSQL sukses dieksekusi."
+          else
+            echo "Peringatan: Supabase membalas dengan HTTP code $HTTP_CODE."
+          fi
+
