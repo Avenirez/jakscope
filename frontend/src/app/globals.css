@@ -135,9 +135,13 @@ body {
   color: rgba(148, 163, 184, 0.9) !important;
 }
 
-/* --------------- Leaflet Pitch-Black Premium Dark Theme --------------- */
-.leaflet-tile-pane {
-  filter: brightness(0.6) invert(1) contrast(3) saturate(0) brightness(0.4);
+/* --------------- Hide Scrollbar Utility --------------- */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
 }
 
 

@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/lib/auth-context";
 import { LogIn, LogOut } from "lucide-react";
+import Link from "next/link";
 
 export default function AuthButton() {
   const { user, loading, signInWithGoogle, signOut } = useAuth();
@@ -55,7 +56,7 @@ export default function AuthButton() {
 
   return (
     <div className="flex items-center gap-3">
-      <div className="flex items-center gap-2">
+      <Link href="/profile" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
         {avatarUrl ? (
           <img
             src={avatarUrl}
@@ -68,10 +69,10 @@ export default function AuthButton() {
             {displayName.charAt(0).toUpperCase()}
           </div>
         )}
-        <span className="text-sm text-slate-300 hidden sm:inline max-w-[120px] truncate">
+        <span className="text-sm text-slate-300 hidden sm:inline max-w-[120px] truncate font-medium">
           {displayName}
         </span>
-      </div>
+      </Link>
       <button
         id="btn-logout"
         onClick={signOut}

@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, Shield, Search } from "lucide-react";
+import { Map, ListFilter, Database } from "lucide-react";
 import dynamic from "next/dynamic";
 
 const JakartaMap = dynamic(() => import("@/components/jakarta-map"), {
@@ -25,7 +25,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed opacity-0 animate-fade-in-up animate-delay-100">
-            Peta interaktif untuk cek sebaran fasilitas publik di seluruh kelurahan DKI Jakarta secara real-time. Cari kelurahanmu dan langsung lihat ketersediaan sekolah, klinik kesehatan, hingga taman.
+            Peta interaktif untuk memantau sebaran fasilitas publik di seluruh kelurahan DKI Jakarta secara real-time. Cari kelurahan Anda untuk melihat ketersediaan fasilitas publik seperti sekolah, fasilitas kesehatan, hingga ruang terbuka hijau.
           </p>
 
           {/* ===== INTERACTIVE JAKARTA MAP ===== */}
@@ -38,28 +38,28 @@ export default function LandingPage() {
       {/* ===== FEATURES SECTION ===== */}
       <section className="max-w-5xl mx-auto px-6 py-20">
         <h2 className="text-2xl md:text-3xl font-bold text-center mb-12">
-          Ada apa saja di{" "}
-          <span className="text-jakarta-blue-light">Jak<span className="bg-gradient-to-r from-jakarta-blue-light to-jakarta-emerald bg-clip-text text-transparent">Scope</span></span>?
+          Layanan Utama{" "}
+          <span className="text-jakarta-blue-light">Jak<span className="bg-gradient-to-r from-jakarta-blue-light to-jakarta-emerald bg-clip-text text-transparent">Scope</span></span>
         </h2>
 
         <div className="grid md:grid-cols-3 gap-6">
           {[
             {
-              icon: <BarChart3 size={28} />,
-              title: "Peta Tinggal Klik",
-              desc: "Tinggal ketuk wilayah kelurahan di peta buat cari tahu sebaran fasilitas sosial dan publik secara langsung.",
+              icon: <Map size={28} />,
+              title: "Peta Interaktif Wilayah",
+              desc: "Pilih wilayah kelurahan pada peta untuk mengetahui persebaran fasilitas publik secara langsung.",
               color: "text-jakarta-blue-light",
             },
             {
-              icon: <Shield size={28} />,
-              title: "Filter Gak Pake Ribet",
-              desc: "Mau cari sekolah, tempat olahraga, klinik, atau pos keamanan? Saring aja kategorinya sekali klik!",
+              icon: <ListFilter size={28} />,
+              title: "Penyaringan Kategori Fasilitas",
+              desc: "Temukan sekolah, fasilitas olahraga, klinik, atau pos keamanan dengan mudah melalui fitur penyaringan kategori terintegrasi.",
               color: "text-jakarta-emerald",
             },
             {
-              icon: <Search size={28} />,
-              title: "Data Selalu Update",
-              desc: "Datanya terhubung langsung ke OpenStreetMap (OSM), jadi selalu baru dan terbuka buat siapa saja.",
+              icon: <Database size={28} />,
+              title: "Pembaruan Data Terkini",
+              desc: "Terintegrasi dengan OpenStreetMap (OSM) untuk menyajikan data yang akurat, transparan, dan dapat diakses oleh seluruh lapisan masyarakat.",
               color: "text-jakarta-amber",
             },
           ].map((feature) => (

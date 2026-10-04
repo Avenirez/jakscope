@@ -66,12 +66,12 @@ export default function JakartaMap() {
       zoomControl: false,
     });
 
-    // Official OpenStreetMap (OSM) tiles
+    // CartoDB Dark Matter tiles (Perfect for Dark Mode)
     L.tileLayer(
-      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
       {
         attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         maxZoom: 19,
       }
     ).addTo(map);
@@ -138,7 +138,8 @@ export default function JakartaMap() {
         setStatusMessage(`Ditemukan: Kelurahan ${lookupData.name}! Mengalihkan ke dashboard...`);
         
         // Navigate
-        router.push(`/dashboard/${lookupData.id}`);
+        const slug = lookupData.name.toLowerCase().replace(/[\s_]+/g, '-');
+        router.push(`/dashboard/${slug}`);
       } catch (err: any) {
         console.error(err);
         setErrorMessage(err.message || "Terjadi kesalahan koneksi.");
@@ -216,7 +217,8 @@ export default function JakartaMap() {
       }
 
       // Navigate
-      router.push(`/dashboard/${id}`);
+      const slug = name.toLowerCase().replace(/[\s_]+/g, '-');
+      router.push(`/dashboard/${slug}`);
     } catch (err: any) {
       console.error("Search selection error:", err);
       const isExplicitBlock = err.message && err.message.includes("0 fasilitas");
@@ -225,7 +227,8 @@ export default function JakartaMap() {
         setLoading(false);
       } else {
         // Fallback: If OSM API is down or times out, proceed to dashboard anyway
-        router.push(`/dashboard/${id}`);
+        const slug = name.toLowerCase().replace(/[\s_]+/g, '-');
+        router.push(`/dashboard/${slug}`);
       }
     }
   };
@@ -261,7 +264,8 @@ export default function JakartaMap() {
 
           const lookupData = await response.json();
           setStatusMessage(`Ditemukan: Kelurahan ${lookupData.name}! Mengalihkan ke dashboard...`);
-          router.push(`/dashboard/${lookupData.id}`);
+          const slug = lookupData.name.toLowerCase().replace(/[\s_]+/g, '-');
+          router.push(`/dashboard/${slug}`);
         } catch (err: any) {
           console.error(err);
           setErrorMessage(err.message || "Gagal mendeteksi kelurahan dari lokasi Anda.");
@@ -311,13 +315,13 @@ export default function JakartaMap() {
       </div>
 
       {/* Floating Search Dropdown overlay */}
-      <div className="absolute top-4 right-4 z-20 w-80" ref={searchRef}>
+      <div className="absolute top-4 right-4 z-20 w-[calc(100vw-2rem)] sm:w-80 max-w-sm" ref={searchRef}>
         <div className="relative bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-xl shadow-xl p-1 flex items-center">
           <Search size={18} className="text-slate-400 ml-3 shrink-0" />
           <input
             type="text"
             value={searchQuery}
-            placeholder="Cari Kelurahan atau Kecamatan..."
+            placeholder="Cari atau tap peta langsung..."
             onFocus={() => setIsSearchOpen(true)}
             onChange={(e) => {
               setSearchQuery(e.target.value);
@@ -344,7 +348,7 @@ export default function JakartaMap() {
           className="mt-2 w-full flex items-center justify-center gap-2 bg-slate-900/90 backdrop-blur-md border border-slate-800 hover:border-jakarta-blue/60 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-200 hover:text-white shadow-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <LocateFixed size={15} className="text-jakarta-blue-light" />
-          Klik disini untuk melihat lokasi saya
+          Klik di sini untuk melihat lokasi Anda
         </button>
 
         {/* Search Results Dropdown List */}

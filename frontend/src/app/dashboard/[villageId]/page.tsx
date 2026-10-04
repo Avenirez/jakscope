@@ -31,9 +31,32 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { villageId } = await params;
   try {
     const data = await getDashboardData(villageId);
+    
+    // Protokol dan Host dinamis
+    const headersList = await headers();
+    const host = headersList.get("host");
+    const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || `${protocol}://${host}`;
+    const pageUrl = `${baseUrl}/dashboard/${villageId}`;
+
     return {
-      title: `Sebaran Fasilitas Kelurahan ${data.village_name} | JakScope`,
-      description: `Peta interaktif sebaran fasilitas publik (kesehatan, pendidikan, dll.) di Kelurahan ${data.village_name}, Kecamatan ${data.district_name}.`,
+      title: `Kelurahan ${data.village_name} | JakScope`,
+      description: `Peta interaktif dan data fasilitas publik (kesehatan, pendidikan, dll) di Kelurahan ${data.village_name}, Kec. ${data.district_name}, Jakarta.`,
+      openGraph: {
+        title: `Peta Fasilitas Kel. ${data.village_name}`,
+        description: `Lihat peta sebaran fasilitas publik dan ulasan warga untuk Kelurahan ${data.village_name}, Kecamatan ${data.district_name}.`,
+        url: pageUrl,
+        type: "website",
+        siteName: "JakScope",
+        images: [
+          {
+            url: `${baseUrl}/favicon.ico`, // Fallback image for now
+            width: 1200,
+            height: 630,
+            alt: `Peta Kelurahan ${data.village_name}`,
+          },
+        ],
+      },
     };
   } catch (error) {
     return {

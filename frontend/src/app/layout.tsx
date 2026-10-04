@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 
@@ -11,6 +12,8 @@ export const metadata: Metadata = {
     description: "Peta Distribusi Fasilitas Publik DKI Jakarta",
     type: "website",
   },
+  manifest: "/manifest.json",
+  themeColor: "#0F172A",
 };
 
 export default function RootLayout({
@@ -22,6 +25,7 @@ export default function RootLayout({
     <html lang="id" suppressHydrationWarning>
       <body suppressHydrationWarning>
         <AuthProvider>{children}</AuthProvider>
+        <Analytics />
       </body>
     </html>
   );

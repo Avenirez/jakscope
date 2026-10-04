@@ -7,20 +7,27 @@ export async function GET(
 ) {
   try {
     const { villageId } = await params;
-    const vilId = Number(villageId);
+    const decodedVillageId = decodeURIComponent(villageId);
+    const isNumeric = /^\d+$/.test(decodedVillageId);
 
-    if (isNaN(vilId)) {
-      return NextResponse.json(
-        { error: "Invalid village ID parameter" },
-        { status: 400 }
-      );
+    let info;
+    let error;
+
+    if (isNumeric) {
+      const vilId = Number(decodedVillageId);
+      ({ data: info, error } = await supabase
+        .from("villages")
+        .select("id, name, districts(name)")
+        .eq("id", vilId)
+        .single());
+    } else {
+      const nameQuery = decodedVillageId.replace(/-/g, ' ');
+      ({ data: info, error } = await supabase
+        .from("villages")
+        .select("id, name, districts(name)")
+        .ilike("name", nameQuery)
+        .single());
     }
-
-    const { data: info, error } = await supabase
-      .from("villages")
-      .select("name, districts(name)")
-      .eq("id", vilId)
-      .single();
 
     if (error || !info) {
       return NextResponse.json(
@@ -33,7 +40,7 @@ export async function GET(
     const districtName = (info.districts as any)?.name || "—";
 
     return NextResponse.json({
-      village_id: vilId,
+      village_id: info.id,
       village_name: villageName,
       district_name: districtName,
     });

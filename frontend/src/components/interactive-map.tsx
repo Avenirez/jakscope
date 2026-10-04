@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { Facility } from "@/lib/overpass";
+import { renderToString } from "react-dom/server";
+import { HeartPulse, GraduationCap, TreePine, ShieldCheck, MapPin, Bus, Church, Store } from "lucide-react";
 
 interface InteractiveMapProps {
   facilities: Facility[];
@@ -30,31 +32,52 @@ export default function InteractiveMap({
 
   // Create custom marker icons for each sector with distinctive colors
   const createCustomIcon = (
-    sector: "health" | "education" | "recreation" | "public_services",
+    sector: "health" | "education" | "recreation" | "public_services" | string,
     category: string
   ) => {
     let color = "#3b82f6"; // Default Blue (Education)
     let glowColor = "rgba(59, 130, 246, 0.5)";
+    let IconComponent = MapPin;
 
     if (sector === "health") {
       color = "#f43f5e"; // Rose / Red
       glowColor = "rgba(244, 63, 94, 0.6)";
+      IconComponent = HeartPulse;
     } else if (sector === "education") {
       color = "#38bdf8"; // Sky Blue
       glowColor = "rgba(56, 189, 248, 0.6)";
+      IconComponent = GraduationCap;
     } else if (sector === "recreation") {
       color = "#10b981"; // Emerald / Green
       glowColor = "rgba(16, 185, 129, 0.6)";
+      IconComponent = TreePine;
     } else if (sector === "public_services") {
       color = "#a855f7"; // Purple
       glowColor = "rgba(168, 85, 247, 0.6)";
+      IconComponent = ShieldCheck;
+    } else if (sector === "transport") {
+      color = "#f59e0b"; // Amber
+      glowColor = "rgba(245, 158, 11, 0.6)";
+      IconComponent = Bus;
+    } else if (sector === "worship") {
+      color = "#6366f1"; // Indigo
+      glowColor = "rgba(99, 102, 241, 0.6)";
+      IconComponent = Church;
+    } else if (sector === "market") {
+      color = "#f97316"; // Orange
+      glowColor = "rgba(249, 115, 22, 0.6)";
+      IconComponent = Store;
     }
+
+    const iconHtml = renderToString(<IconComponent size={12} color="white" />);
 
     return L.divIcon({
       html: `
         <div class="relative flex items-center justify-center w-8 h-8 group">
           <div class="absolute w-6 h-6 rounded-full animate-ping opacity-25" style="background-color: ${color}"></div>
-          <div class="w-3.5 h-3.5 rounded-full border-2 border-slate-900 shadow-lg transition-transform duration-200 group-hover:scale-125" style="background-color: ${color}; box-shadow: 0 0 10px 4px ${glowColor}"></div>
+          <div class="flex items-center justify-center w-5 h-5 rounded-full border border-slate-900 shadow-lg transition-transform duration-200 group-hover:scale-125" style="background-color: ${color}; box-shadow: 0 0 10px 4px ${glowColor}">
+            ${iconHtml}
+          </div>
         </div>
       `,
       className: "custom-leaflet-icon",
@@ -88,12 +111,12 @@ export default function InteractiveMap({
       zoomControl: false,
     });
 
-    // 2. Official OpenStreetMap (OSM) tiles
+    // 2. CartoDB Dark Matter tiles (Perfect for Dark Mode)
     L.tileLayer(
-      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
       {
         attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         maxZoom: 19,
       }
     ).addTo(map);
@@ -179,6 +202,9 @@ export default function InteractiveMap({
         education: "Pendidikan",
         recreation: "Taman & Rekreasi",
         public_services: "Layanan Keamanan & Publik",
+        transport: "Transportasi Publik",
+        worship: "Tempat Ibadah",
+        market: "Pasar Tradisional",
       };
 
       const sectorColors: Record<string, string> = {
@@ -186,6 +212,9 @@ export default function InteractiveMap({
         education: "#38bdf8",
         recreation: "#10b981",
         public_services: "#a855f7",
+        transport: "#f59e0b",
+        worship: "#6366f1",
+        market: "#f97316",
       };
 
       // HTML inside Popup

@@ -1,0 +1,25 @@
+name: Keep Alive Server (Anti Cold-Start)
+
+on:
+  schedule:
+    # Berjalan setiap 15 menit, setiap hari
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Frontend & API
+        env:
+          # Pastikan URL ini sesuai dengan URL production Vercel/website Anda
+          # Anda bisa mengubahnya langsung di sini atau menggunakan GitHub Secrets
+          WEBSITE_URL: ${{ secrets.PRODUCTION_URL || 'https://jakscope.my.id' }}
+        run: |
+          echo "Pinging $WEBSITE_URL to keep Vercel warm..."
+          curl -s -o /dev/null -w "%{http_code}" "$WEBSITE_URL"
+          
+          echo -e "\nPinging API to keep Supabase warm..."
+          curl -s -o /dev/null -w "%{http_code}" "$WEBSITE_URL/api/villages"
+          
+          echo -e "\nPing selesai!"

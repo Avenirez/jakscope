@@ -11,7 +11,6 @@ import {
 import dynamic from "next/dynamic";
 
 import type { DashboardData } from "@/lib/api";
-import QrisModal from "@/components/qris-modal";
 import AuthButton from "@/components/auth-button";
 import ReviewSection from "@/components/review-section";
 import { fetchFacilitiesFromOSM, type Facility } from "@/lib/overpass";
@@ -44,12 +43,26 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
         setFacilities(res.facilities);
         setVillageCenter(res.center);
       })
-      .catch((err) => {
+      .catch(async (err) => {
         console.error("Error fetching OSM data:", err);
+        // Even if Overpass is down, try to get the village center so the
+        // map can still render (just without facility markers).
+        try {
+          const centerRes = await fetch(`/api/villages/${villageId}/center`);
+          if (centerRes.ok) {
+            const centerData = await centerRes.json();
+            if (centerData.center) {
+              setVillageCenter(centerData.center);
+              // Show map with no markers instead of error screen
+              setMapError(null);
+              return;
+            }
+          }
+        } catch {}
         setMapError(err.message || "Gagal mengambil data dari OpenStreetMap.");
       })
       .finally(() => setLoadingMap(false));
-  }, [data?.village_name]);
+  }, [data?.village_name, villageId]);
 
   return (
     <main className="min-h-screen">
@@ -94,13 +107,16 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
             </div>
 
             {/* Filter Sektor */}
-            <div className="flex flex-wrap gap-1.5 bg-slate-900/60 p-1 rounded-xl border border-slate-800">
+            <div className="flex flex-row overflow-x-auto whitespace-nowrap hide-scrollbar gap-1.5 bg-slate-900/60 p-1.5 rounded-xl border border-slate-800">
               {[
                 { id: "all", label: "Semua Sektor", activeClass: "bg-slate-800 text-white border-slate-700 shadow-sm" },
+                { id: "transport", label: "Transportasi", activeClass: "bg-amber-500/20 text-amber-300 border-amber-500/30 shadow-sm shadow-amber-950" },
                 { id: "health", label: "Kesehatan", activeClass: "bg-rose-500/20 text-rose-300 border-rose-500/30 shadow-sm shadow-rose-950" },
                 { id: "education", label: "Pendidikan", activeClass: "bg-sky-500/20 text-sky-300 border-sky-500/30 shadow-sm shadow-sky-950" },
                 { id: "recreation", label: "Taman & Olahraga", activeClass: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30 shadow-sm shadow-emerald-950" },
                 { id: "public_services", label: "Keamanan & Publik", activeClass: "bg-purple-500/20 text-purple-300 border-purple-500/30 shadow-sm shadow-purple-950" },
+                { id: "worship", label: "Tempat Ibadah", activeClass: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30 shadow-sm shadow-indigo-950" },
+                { id: "market", label: "Pasar", activeClass: "bg-orange-500/20 text-orange-300 border-orange-500/30 shadow-sm shadow-orange-950" },
               ].map((btn) => (
                 <button
                   key={btn.id}
@@ -168,13 +184,6 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
         {/* ===== REVIEWS & RATINGS ===== */}
         <ReviewSection villageId={villageId} />
 
-        {/* ===== DONATION / QRIS ===== */}
-        <section className="text-center py-12 opacity-0 animate-fade-in-up animate-delay-400">
-          <p className="text-slate-400 mb-4 text-sm">
-            Bantu platform ini agar tetap berjalan.
-          </p>
-          <QrisModal />
-        </section>
       </div>
 
       {/* ===== FOOTER ===== */}

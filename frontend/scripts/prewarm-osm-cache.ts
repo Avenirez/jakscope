@@ -43,8 +43,9 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
  
 const OVERPASS_MIRRORS = [
   "https://overpass-api.de/api/interpreter",
-  "https://api-overpass.osm.ch/api/interpreter",
   "https://overpass.kumi.systems/api/interpreter",
+  "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+  "https://overpass.openstreetmap.ru/api/interpreter",
 ];
  
 const DELAY_BETWEEN_VILLAGES_MS = 1500;
@@ -57,29 +58,40 @@ function getFriendlyCategoryName(tags: any): string {
   if (tags.amenity === "school" || tags.amenity === "kindergarten") return "Sekolah";
   if (tags.amenity === "college" || tags.amenity === "university") return "Universitas/Perguruan Tinggi";
   if (tags.amenity === "library") return "Perpustakaan";
-  if (tags.amenity === "clinic" || tags.amenity === "hospital") return "Puskesmas/Klinik";
-  if (tags.amenity === "pharmacy") return "Apotek";
-  if (tags.amenity === "doctors") return "Praktek Dokter";
+  if (tags.amenity === "clinic" || tags.amenity === "hospital") return "Puskesmas/Klinik/Rumah Sakit";
   if (tags.leisure === "park" || tags.leisure === "playground") return "Taman & RPTRA";
-  if (tags.leisure === "sports_centre" || tags.leisure === "pitch") return "Fasilitas Olahraga";
+  if (tags.leisure === "sports_centre") return "Fasilitas Olahraga";
   if (tags.amenity === "fire_station") return "Pos Pemadam Kebakaran";
   if (tags.amenity === "police") return "Pos Polisi";
   if (tags.amenity === "townhall") return "Kantor Pemerintahan";
   if (tags.amenity === "community_centre") return "Balai Warga/RW";
   if (tags.amenity === "post_office") return "Kantor Pos";
+  if (tags.highway === "bus_stop" || tags.amenity === "bus_station" || tags.public_transport === "station") return "Halte/Terminal Bus";
+  if (tags.railway === "station") return "Stasiun Kereta";
+  if (tags.amenity === "place_of_worship") return "Tempat Ibadah";
+  if (tags.amenity === "marketplace") return "Pasar Tradisional";
   return "Fasilitas Publik";
 }
  
 function mapTagsToSectorAndCategory(tags: any) {
   const category = getFriendlyCategoryName(tags);
-  if (["clinic", "hospital", "pharmacy", "doctors"].includes(tags.amenity)) {
+  if (tags.amenity === "clinic" || tags.amenity === "hospital") {
     return { sector: "health", category };
   }
   if (["school", "kindergarten", "college", "university", "library"].includes(tags.amenity)) {
     return { sector: "education", category };
   }
-  if (["park", "playground", "sports_centre", "pitch"].includes(tags.leisure)) {
+  if (["park", "playground", "sports_centre"].includes(tags.leisure)) {
     return { sector: "recreation", category };
+  }
+  if (tags.highway === "bus_stop" || tags.amenity === "bus_station" || tags.public_transport === "station" || tags.railway === "station") {
+    return { sector: "transport", category };
+  }
+  if (tags.amenity === "place_of_worship") {
+    return { sector: "worship", category };
+  }
+  if (tags.amenity === "marketplace") {
+    return { sector: "market", category };
   }
   return { sector: "public_services", category };
 }
@@ -161,12 +173,19 @@ async function prewarmVillage(villageName: string): Promise<"ok" | "skip" | "fai
  
     const [lat, lon] = center;
     const facilitiesQuery = `
-      [out:json][timeout:15];
+      [out:json][timeout:25];
       (
-        nwr["amenity"~"school|kindergarten|college|university|library"](around:1250,${lat},${lon});
-        nwr["amenity"~"clinic|hospital|pharmacy|doctors"](around:1250,${lat},${lon});
-        nwr["leisure"~"park|playground|sports_centre|pitch"](around:1250,${lat},${lon});
-        nwr["amenity"~"fire_station|police|townhall|community_centre|post_office"](around:1250,${lat},${lon});
+        nwr["amenity"~"school|kindergarten|college|university|library"](around:900,${lat},${lon});
+        nwr["amenity"~"clinic|hospital"](around:900,${lat},${lon});
+        nwr["leisure"~"park|playground|sports_centre"](around:900,${lat},${lon});
+        nwr["amenity"~"fire_station|police|townhall|community_centre|post_office"](around:900,${lat},${lon});
+        
+        nwr["amenity"="place_of_worship"](around:900,${lat},${lon});
+        nwr["amenity"="marketplace"](around:900,${lat},${lon});
+        node["highway"="bus_stop"](around:900,${lat},${lon});
+        nwr["amenity"="bus_station"](around:900,${lat},${lon});
+        nwr["public_transport"="station"](around:900,${lat},${lon});
+        nwr["railway"="station"](around:900,${lat},${lon});
       );
       out center;
     `;
@@ -187,7 +206,7 @@ async function prewarmVillage(villageName: string): Promise<"ok" | "skip" | "fai
         lon: flon,
         sector,
         category,
-        amenityType: tags.amenity || tags.leisure || "unknown",
+        amenityType: tags.amenity || tags.leisure || tags.highway || tags.railway || "unknown",
       });
     });
  
