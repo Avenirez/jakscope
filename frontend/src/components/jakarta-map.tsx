@@ -66,12 +66,12 @@ export default function JakartaMap() {
       zoomControl: false,
     });
 
-    // CartoDB Dark Matter tiles (Perfect for Dark Mode)
+    // Official OpenStreetMap (OSM) tiles
     L.tileLayer(
-      "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
       {
         attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19,
       }
     ).addTo(map);
@@ -121,6 +121,13 @@ export default function JakartaMap() {
     // Handle Map Click
     const onMapClick = async (e: L.LeafletMouseEvent) => {
       const { lat, lng } = e.latlng;
+
+      // Client-side Jakarta boundary check (instant, no network needed)
+      if (lat < -6.38 || lat > -6.08 || lng < 106.68 || lng > 106.97) {
+        setErrorMessage("Koordinat berada di luar batas wilayah DKI Jakarta.");
+        return;
+      }
+
       setLoading(true);
       setErrorMessage(null);
       setStatusMessage("Mendeteksi kelurahan dari koordinat...");

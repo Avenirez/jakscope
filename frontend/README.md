@@ -8,9 +8,11 @@
 
 ## 🚀 Fitur Unggulan (Production Ready)
 
-### 1. 🗺️ Peta Interaktif & Eksplorasi Cerdas
-- **Deteksi Otomatis:** Klik area manapun di peta Jakarta atau gunakan *Geolocation* (GPS), sistem akan mendeteksi nama kelurahan secara otomatis.
-- **Visualisasi Glassmorphism:** Antarmuka modern dengan gaya *dark mode* sejati (CartoDB Dark Matter tiles) dipadukan dengan aksen tembus pandang (*glassmorphism*).
+### 1. 🗺️ Peta Interaktif, Navigasi, & Live Tracking
+- **Live Tracking:** Pengguna dapat melacak lokasi mereka secara *real-time* di atas peta (ditandai dengan titik biru berkedip) berbekal API `navigator.geolocation`, sangat berguna untuk menemukan arah secara presisi saat berada di lapangan.
+- **Arahkan Rute:** Integrasi *deep-link* sekali klik yang otomatis membuka Google Maps dari kotak info (popup) peta, lengkap dengan koordinat tujuan yang sudah terisi.
+- **Deteksi Otomatis & Strict Bounds:** Klik area manapun di peta Jakarta atau gunakan *Geolocation* (GPS), sistem akan mendeteksi nama kelurahan secara otomatis. Dilengkapi 3 lapis validasi koordinat (*maxBounds*, *Client-side*, & *Server-side*) agar bebas dari anomali lokasi di luar Jakarta.
+- **Visualisasi Glassmorphism:** Antarmuka modern dengan gaya *dark mode* sejati (menggunakan hack CSS `filter: invert` murni pada peta OpenStreetMap agar kebal *API watermark*) dipadukan dengan aksen tembus pandang (*glassmorphism*).
 
 ### 2. ⚡ Arsitektur Resilient & Anti-Jatuh
 - **Overpass API Multi-Mirror:** Menggunakan sistem *fallback* 4 *server mirror* (Jerman, Swiss, Rusia) untuk mencegah kegagalan (*timeout*) saat mengambil data fasilitas OSM.
@@ -20,9 +22,12 @@
   - `db-backup`: Mencadangkan (*backup*) basis data SQL otomatis ke repositori secara berkala.
   - `keep-alive`: Mencegah server Vercel mengalami *Cold Start* (*sleep*).
 
-### 3. 🛡️ Keamanan Skala Industri
-- **In-Memory Rate Limiting:** Melindungi API dari serangan beban palsu (*DoS/DDoS*) dan meminimalisir penalti *Rate Limit* dari server OSM.
-- **Row Level Security (RLS):** Pengamanan basis data di tingkat sel (Supabase) memastikan komentar dan ulasan (*reviews*) hanya bisa diubah atau dihapus oleh pemilik aslinya (berbasis Token Autentikasi JWT).
+### 3. 🛡️ Keamanan & Optimasi Skala Industri (Enterprise-Grade)
+- **Self-Clearing Rate Limiting (Garbage Collected):** Melindungi API dari serangan *DoS* sekaligus menambal celah *memory leak* menggunakan algoritme *sweep* (LRU Cache) yang membuang riwayat IP lama setiap 2 menit, menstabilkan RAM server selamanya.
+- **Clean Architecture & Memoization:** 
+  - Seluruh konfigurasi peta dipisahkan ke dalam lapisan Domain `core/constants/` demi meminimalisasi keterikatan antarkomponen (*coupling*).
+  - Integrasi murni `useMemo` dan penambalan duplikasi DOM (*Zombie Markers*) demi menghemat tenaga prosesor klien.
+- **Row Level Security (RLS):** Pengamanan basis data di tingkat sel (Supabase) memastikan komentar dan ulasan (*reviews*) hanya bisa diubah/dihapus oleh pemilik aslinya.
 - **Anti-XSS & Information Disclosure:** Menutup rapat celah keamanan injeksi Javascript (XSS) dan mencegah log server (*stack trace error*) bocor ke sisi klien.
 
 ### 4. 📈 SEO (Auto-Pilot) & PWA

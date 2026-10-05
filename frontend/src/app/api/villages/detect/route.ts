@@ -16,7 +16,7 @@ import { supabase } from "@/lib/supabase";
 // Ambang batas jarak maksimum (dalam derajat, ~0.03 ≈ ~3.3km).
 // Jika titik klik lebih jauh dari ini ke kelurahan terdekat,
 // kemungkinan besar user mengklik area tanpa data (laut, dll).
-const MAX_DISTANCE_DEG = 0.03;
+const MAX_DISTANCE_DEG = 0.02;
 
 export async function GET(request: Request) {
   try {
@@ -41,10 +41,10 @@ export async function GET(request: Request) {
       );
     }
 
-    // Rentang geografis DKI Jakarta kasar (termasuk Kepulauan Seribu di utara)
-    if (latNum < -6.5 || latNum > -5.4 || lngNum < 106.3 || lngNum > 107.1) {
+    // Rentang geografis DKI Jakarta ketat (daratan utama saja, tanpa Kep. Seribu)
+    if (latNum < -6.38 || latNum > -6.08 || lngNum < 106.68 || lngNum > 106.97) {
       return NextResponse.json(
-        { error: "Koordinat di luar wilayah DKI Jakarta yang valid" },
+        { error: "Koordinat berada di luar batas wilayah DKI Jakarta." },
         { status: 400 }
       );
     }

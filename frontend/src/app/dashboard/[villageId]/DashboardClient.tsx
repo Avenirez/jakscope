@@ -32,6 +32,32 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
   const [loadingMap, setLoadingMap] = useState(false);
   const [selectedSectorFilter, setSelectedSectorFilter] = useState<string>("all");
   const [mapError, setMapError] = useState<string | null>(null);
+  
+  // State for Live Tracking
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+
+  // Watch User Location (Live Tracking)
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        setUserLocation([pos.coords.latitude, pos.coords.longitude]);
+      },
+      (err) => {
+        console.warn("Live tracking err:", err);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 5000,
+      }
+    );
+
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+    };
+  }, []);
 
   // Fetch real facilities from OpenStreetMap when village name becomes available
   useEffect(() => {
@@ -176,6 +202,7 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
               selectedSector={selectedSectorFilter}
               villageName={data.village_name}
               center={villageCenter}
+              userLocation={userLocation}
             />
           )}
         </section>

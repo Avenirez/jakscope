@@ -6,23 +6,32 @@ import {
   getFriendlyCategoryName,
   mapTagsToSectorAndCategory,
   toTitleCase,
-import {
-  getFriendlyCategoryName,
-  mapTagsToSectorAndCategory,
-  toTitleCase,
 } from "@/lib/overpass";
 
-// Basic In-Memory Rate Limiter Map (IP -> Timestamp array)
-// Note: In serverless (Vercel), this only protects individual instances, 
-// but it's enough to stop basic request flooding/DoS.
+// PRODUCTION FIX: Simple Self-Clearing Rate Limiter to prevent Memory Leaks
 const rateLimitMap = new Map<string, number[]>();
 const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
 const MAX_REQUESTS_PER_WINDOW = 15; // Max 15 requests per minute per IP
+
+// Run garbage collection every 2 minutes
+let lastSweepTime = Date.now();
+const cleanOldIPs = () => {
+  const now = Date.now();
+  if (now - lastSweepTime > 120000) {
+    for (const [ip, timestamps] of rateLimitMap.entries()) {
+      const valid = timestamps.filter(t => now - t < RATE_LIMIT_WINDOW_MS);
+      if (valid.length === 0) rateLimitMap.delete(ip);
+      else rateLimitMap.set(ip, valid);
+    }
+    lastSweepTime = now;
+  }
+};
 
 export async function GET(request: Request) {
   try {
     // 0. Rate Limiting Check
     const ip = request.headers.get("x-forwarded-for") || "unknown-ip";
+    cleanOldIPs(); // Trigger Garbage Collection implicitly
     const now = Date.now();
     
     if (ip !== "unknown-ip") {
