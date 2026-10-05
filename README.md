@@ -1,100 +1,84 @@
-# JakScope — Peta Distribusi Fasilitas Publik DKI Jakarta
+# 🏙️ JakScope - Pantau Jakarta
 
-**JakScope** adalah platform web interaktif untuk memetakan sebaran fasilitas publik (pendidikan, kesehatan, taman & olahraga, keamanan, dan layanan publik) di 267 Kelurahan DKI Jakarta secara real-time menggunakan data OpenStreetMap dan Supabase.
+**JakScope** adalah platform interaktif modern yang memungkinkan warga DKI Jakarta untuk memantau, menemukan, dan mengulas fasilitas publik (kesehatan, pendidikan, ruang terbuka hijau, tempat ibadah, layanan keamanan, dll) di tingkat Kelurahan, menggunakan data waktu-nyata (*real-time*) dari OpenStreetMap.
 
----
-
-## Fitur Utama
-
-- **Peta Dark-Mode Interaktif**: Visualisasi peta modern dengan tema gelap (pitch-black), masking batas wilayah luar DKI Jakarta, dan penanda (*marker*) fasilitas publik per kelurahan.
-- **Deteksi Koordinat Cepat (~100ms)**: Fitur *nearest-neighbor lookup* berbasis koordinat pusat kelurahan saat pengguna mengklik area mana saja di peta Jakarta.
-- **Cakupan Full 267 Kelurahan**: Akses penuh ke seluruh 267 Kelurahan di 44 Kecamatan DKI Jakarta tanpa hambatan.
-- **Pre-warm Cache Fasilitas OSM**: Sistem caching dua tingkat (Supabase Database + Overpass API) dilengkapi skrip otomatisasi pre-warm agar peta dapat dimuat secara instan (<1 detik).
-- **Sistem Rating & Ulasan Kelurahan**: Fitur penilaian dan ulasan fasilitas publik per kelurahan yang terintegrasi dengan **Supabase Auth** serta kebijakan keamanan Row Level Security (RLS).
-- **Donasi QRIS Dinamis**: Gateway donasi dengan generator QR Code dinamis berbasis standar EMVCo TLV untuk mendukung operasional server.
+🌐 **Website Live:** [jakscope.my.id](https://jakscope.my.id)
 
 ---
 
-## Tech Stack
+## 🚀 Fitur Unggulan (Production Ready)
 
-| Layer | Teknologi |
-|---|---|
-| **Frontend Framework** | Next.js 15 (App Router) · React 19 |
-| **Language & Styling** | TypeScript · Tailwind CSS · CSS Custom Properties |
-| **Map Rendering** | Leaflet · React-Leaflet · OpenStreetMap Tiles |
-| **Database & Auth** | Supabase (PostgreSQL) · Supabase Auth (RLS Enabled) |
-| **Data Provider** | OpenStreetMap via Overpass API Engine |
-| **QRIS Generator** | EMVCo TLV Parser + `qrcode` SVG/PNG Renderer |
+### 1. 🗺️ Peta Interaktif, Navigasi, & Live Tracking
+- **Live Tracking:** Pengguna dapat melacak lokasi mereka secara *real-time* di atas peta (ditandai dengan titik biru berkedip) berbekal API `navigator.geolocation`, sangat berguna untuk menemukan arah secara presisi saat berada di lapangan.
+- **Arahkan Rute:** Integrasi *deep-link* sekali klik yang otomatis membuka Google Maps dari kotak info (popup) peta, lengkap dengan koordinat tujuan yang sudah terisi.
+- **Deteksi Otomatis & Strict Bounds:** Klik area manapun di peta Jakarta atau gunakan *Geolocation* (GPS), sistem akan mendeteksi nama kelurahan secara otomatis. Dilengkapi 3 lapis validasi koordinat (*maxBounds*, *Client-side*, & *Server-side*) agar bebas dari anomali lokasi di luar Jakarta.
+- **Visualisasi Glassmorphism:** Antarmuka modern dengan gaya *dark mode* sejati (menggunakan hack CSS `filter: invert` murni pada peta OpenStreetMap agar kebal *API watermark*) dipadukan dengan aksen tembus pandang (*glassmorphism*).
 
----
+### 2. ⚡ Arsitektur Resilient & Anti-Jatuh
+- **Overpass API Multi-Mirror:** Menggunakan sistem *fallback* 4 *server mirror* (Jerman, Swiss, Rusia) untuk mencegah kegagalan (*timeout*) saat mengambil data fasilitas OSM.
+- **Sistem Caching Supabase:** Data OSM yang berat disimpan di *cache* database (Supabase). Jika API Overpass sedang *down*, aplikasi akan menyajikan data dari *cache* sehingga layar putih (blank) tidak pernah terjadi (*Graceful Degradation*).
+- **GitHub Actions Automation:**
+  - `prewarm-cache`: Memperbarui data peta secara otomatis ke 267 kelurahan setiap bulan tanpa membebani pengunjung pertama.
+  - `db-backup`: Mencadangkan (*backup*) basis data SQL otomatis ke repositori secara berkala.
+  - `keep-alive`: Mencegah server Vercel mengalami *Cold Start* (*sleep*).
 
-## Struktur Folder
+### 3. 🛡️ Keamanan & Optimasi Skala Industri (Enterprise-Grade)
+- **Self-Clearing Rate Limiting (Garbage Collected):** Melindungi API dari serangan *DoS* sekaligus menambal celah *memory leak* menggunakan algoritme *sweep* (LRU Cache) yang membuang riwayat IP lama setiap 2 menit, menstabilkan RAM server selamanya.
+- **Clean Architecture & Memoization:** 
+  - Seluruh konfigurasi peta dipisahkan ke dalam lapisan Domain `core/constants/` demi meminimalisasi keterikatan antarkomponen (*coupling*).
+  - Integrasi murni `useMemo` dan penambalan duplikasi DOM (*Zombie Markers*) demi menghemat tenaga prosesor klien.
+- **Row Level Security (RLS):** Pengamanan basis data di tingkat sel (Supabase) memastikan komentar dan ulasan (*reviews*) hanya bisa diubah/dihapus oleh pemilik aslinya.
+- **Anti-XSS & Information Disclosure:** Menutup rapat celah keamanan injeksi Javascript (XSS) dan mencegah log server (*stack trace error*) bocor ke sisi klien.
 
-```
-jakscope/
-├── database/
-│   ├── migration.sql              # Skema utama database (Districts, Villages, Cache, Reviews, RLS)
-│   ├── fix_cache_and_villages_rls.sql # Skrip hardening RLS policy
-│   └── scripts/
-│       └── seed_jakarta.py        # Skrip Python untuk seeding 44 Kecamatan & 267 Kelurahan
-├── frontend/
-│   ├── scripts/
-│   │   └── prewarm-osm-cache.ts   # Skrip pre-warm cache fasilitas OSM ke Supabase
-│   ├── src/
-│   │   ├── app/
-│   │   │   ├── layout.tsx
-│   │   │   ├── page.tsx           # Landing page pencarian & peta interaktif Jakarta
-│   │   │   ├── globals.css        # Custom CSS, map styling, & dark mode overlay
-│   │   │   ├── api/
-│   │   │   │   ├── villages/      # Endpoint list kelurahan & deteksi koordinat
-│   │   │   │   ├── reviews/       # Endpoint ulasan & rating kelurahan
-│   │   │   │   └── donate/qris/   # Endpoint proxy generator QRIS dinamis
-│   │   │   └── dashboard/[villageId]/ # Halaman detail fasilitas & ulasan kelurahan
-│   │   ├── components/
-│   │   │   ├── jakarta-map.tsx    # Peta interaktif landing page dengan GeoJSON mask
-│   │   │   ├── interactive-map.tsx # Peta sebaran fasilitas di halaman detail
-│   │   │   ├── auth-button.tsx    # Komponen Supabase Auth (Login/Logout)
-│   │   │   ├── review-section.tsx # Komponen ulasan, rating bintang, & input ulasan
-│   │   │   └── donate-modal.tsx   # Modal donasi QRIS dinamis
-│   │   └── lib/
-│   │       ├── api.ts             # Type definition & helper API
-│   │       ├── supabase.ts        # Inisialisasi Supabase Client
-│   │       └── overpass.ts        # Client & Server fetcher fasilitas OpenStreetMap
-│   ├── package.json
-│   ├── tailwind.config.ts
-│   └── next.config.ts
-└── README.md
-```
+### 4. 📈 SEO (Auto-Pilot) & PWA
+- **Hyper-Local SEO (GEO):** Menerapkan Next.js *Dynamic Metadata & Open Graph*, mengubah ke-267 kelurahan menjadi halaman terpisah yang terbaca unik oleh Google dan memiliki pratinjau yang indah saat dibagikan ke WhatsApp / X.
+- **Auto Sitemap & Robots.txt:** Menghasilkan `sitemap.xml` dinamis langsung dari database.
+- **Progressive Web App (PWA):** Dilengkapi `manifest.json` agar website dapat dipasang (*install*) di *Homescreen* HP seperti aplikasi biasa.
+
+### 5. 👥 Sistem Komunitas & Ulasan
+- **Autentikasi Mudah:** Login dengan sekali klik menggunakan akun Google (OAuth Supabase).
+- **Dashboard Pengguna:** Halaman profil khusus tempat pengguna bisa melacak jejak ulasan bintang yang pernah mereka berikan di berbagai kelurahan.
 
 ---
 
-## Pre-warm Cache Fasilitas OSM
+## 🛠️ Tech Stack
 
-Agar halaman detail kelurahan dapat dibuka secara instan oleh pengguna tanpa harus menunggu *live query* ke Overpass API, jalankan skrip pre-warm cache:
-
-```bash
-cd frontend
-npm run prewarm-osm
-```
-
-*Catatan: Disarankan untuk mengkonfigurasi skrip ini secara berkala (misal: mingguan via cron job) agar data sebaran fasilitas publik di Supabase tetap mutakhir.*
+- **Framework:** Next.js (App Router), React
+- **Styling:** Tailwind CSS
+- **Peta & Visualisasi:** Leaflet.js
+- **Database & Auth:** Supabase (PostgreSQL)
+- **Eksternal API:** Overpass API (OpenStreetMap)
+- **Deployment & Analytics:** Vercel
 
 ---
 
-## API Endpoints
+## 💻 Cara Menjalankan Secara Lokal (Development)
 
-### Internal API Routes (Next.js App Router)
+1. **Clone Repository:**
+   ```bash
+   git clone https://github.com/YOUR_GITHUB_USERNAME/jakscope.git
+   cd jakscope/frontend
+   ```
 
-- `GET /api/villages` — Mengambil daftar kelurahan dan kecamatan di DKI Jakarta.
-- `GET /api/villages/detect?lat={lat}&lng={lng}` — Deteksi kelurahan terdekat dari koordinat klik peta.
-- `GET /api/villages/[villageId]/dashboard` — Mengambil informasi detail kelurahan.
-- `GET /api/villages/facilities?village={name}` — Mengambil data sebaran fasilitas publik (dari cache database / live Overpass API).
-- `GET /api/reviews?village_id={id}` — Mengambil daftar ulasan & rating untuk kelurahan tertentu.
-- `POST /api/reviews` — Mengirimkan ulasan & rating baru (membutuhkan sesi login Supabase Auth).
-- `GET /api/donate/qris?amount={nominal}` — Menghasilkan image QR Code QRIS dinamis berbasis EMVCo.
+2. **Install Dependensi:**
+   ```bash
+   npm install
+   ```
+
+3. **Atur Environment Variables:**
+   Buat file `.env.local` di root folder `frontend` dan isikan:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   NEXT_PUBLIC_SITE_URL=http://localhost:3000
+   ```
+
+4. **Jalankan Server Development:**
+   ```bash
+   npm run dev
+   ```
+   Buka `http://localhost:3000` di browser Anda.
 
 ---
 
-## Lisensi
-
-Proyek ini dirilis di bawah lisensi **MIT**.
+*Dibuat untuk memajukan tata kelola kota Jakarta yang lebih terbuka.* 🏙️
