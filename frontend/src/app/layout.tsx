@@ -17,6 +17,12 @@ export const metadata: Metadata = {
   },
   manifest: "/manifest.json",
   themeColor: "#0F172A",
+  other: {
+    "geo.region": "ID-JK",
+    "geo.placename": "DKI Jakarta",
+    "geo.position": "-6.200000;106.816666",
+    "ICBM": "-6.200000, 106.816666",
+  },
 };
 
 export default function RootLayout({
