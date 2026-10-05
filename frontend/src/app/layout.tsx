@@ -12,6 +12,9 @@ export const metadata: Metadata = {
     description: "Peta Distribusi Fasilitas Publik DKI Jakarta",
     type: "website",
   },
+  verification: {
+    google: "XLQxg0ud64eUCk1NXi5xGgYrleK5v_yDOMKSOj0oAHI",
+  },
   manifest: "/manifest.json",
   themeColor: "#0F172A",
 };
