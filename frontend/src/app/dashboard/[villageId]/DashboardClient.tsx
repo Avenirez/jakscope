@@ -133,7 +133,7 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
             </div>
 
             {/* Filter Sektor */}
-            <div className="flex flex-row overflow-x-auto whitespace-nowrap hide-scrollbar gap-1.5 bg-slate-900/60 p-1.5 rounded-xl border border-slate-800">
+            <div className="flex flex-row flex-wrap gap-1.5 bg-slate-900/60 p-1.5 rounded-xl border border-slate-800">
               {[
                 { id: "all", label: "Semua Sektor", activeClass: "bg-slate-800 text-white border-slate-700 shadow-sm" },
                 { id: "transport", label: "Transportasi", activeClass: "bg-amber-500/20 text-amber-300 border-amber-500/30 shadow-sm shadow-amber-950" },
@@ -147,7 +147,7 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
                 <button
                   key={btn.id}
                   onClick={() => setSelectedSectorFilter(btn.id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold border border-transparent transition-all duration-200 ${
+                  className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold border border-transparent transition-all duration-200 ${
                     selectedSectorFilter === btn.id
                       ? btn.activeClass
                       : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/40"
