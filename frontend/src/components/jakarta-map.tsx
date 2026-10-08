@@ -357,14 +357,14 @@ export default function JakartaMap() {
 
       {/* Mobile Hint Toast */}
       {showMobileHint && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 w-[90%] bg-slate-900/95 backdrop-blur-md border border-jakarta-blue/40 rounded-xl px-4 py-3 shadow-xl flex items-center justify-between sm:hidden animate-fade-in-up">
-          <div className="flex items-center gap-3">
-            <MapPin size={18} className="text-jakarta-blue-light animate-bounce" />
-            <span className="text-xs text-slate-200 font-medium">Tap area mana saja di peta untuk melihat dashboard kelurahan.</span>
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 w-[90%] bg-slate-900/95 backdrop-blur-md border border-jakarta-blue/40 rounded-xl px-4 py-3 shadow-xl flex items-start justify-between sm:hidden animate-fade-in-up">
+          <div className="flex items-start gap-3 pr-2 flex-1">
+            <MapPin size={18} className="text-jakarta-blue-light animate-bounce shrink-0 mt-0.5" />
+            <span className="text-xs text-slate-200 font-medium leading-relaxed">Tap area mana saja di peta untuk melihat dashboard kelurahan.</span>
           </div>
           <button 
             onClick={() => setShowMobileHint(false)}
-            className="p-1 text-slate-400 hover:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-jakarta-blue"
+            className="p-1 text-slate-400 hover:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-jakarta-blue shrink-0"
             aria-label="Tutup panduan"
           >
             <X size={16} />
