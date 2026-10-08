@@ -85,6 +85,17 @@ body {
 .animate-delay-300 { animation-delay: 0.3s; }
 .animate-delay-400 { animation-delay: 0.4s; }
 
+/* --------------- Shake animation --------------- */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.animate-shake {
+  animation: shake 0.2s ease-in-out 0s 2;
+}
+
 /* --------------- Metric card hover --------------- */
 .metric-hover {
   transition: transform 0.2s ease, box-shadow 0.2s ease;

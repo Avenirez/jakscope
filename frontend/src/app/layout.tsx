@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
+import PwaInstallButton from "@/components/pwa-install-button";
 
 export const metadata: Metadata = {
   title: "JakScope",
@@ -31,9 +32,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id" suppressHydrationWarning>
+    <html lang="id" suppressHydrationWarning className="scroll-smooth">
       <body suppressHydrationWarning>
         <AuthProvider>{children}</AuthProvider>
+        <PwaInstallButton />
         <Analytics />
       </body>
     </html>

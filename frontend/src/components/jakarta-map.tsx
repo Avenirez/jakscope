@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Search, MapPin, AlertCircle, Loader2, X, LocateFixed } from "lucide-react";
+import { Search, MapPin, AlertCircle, Loader2, X, LocateFixed, Clock } from "lucide-react";
 
 export default function JakartaMap() {
   const router = useRouter();
@@ -16,11 +16,16 @@ export default function JakartaMap() {
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [shakeError, setShakeError] = useState(false);
 
   // Search States
   const [villagesList, setVillagesList] = useState<Array<{ id: number; name: string; districtName: string }>>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [recentSearches, setRecentSearches] = useState<Array<{ id: number; name: string; districtName: string }>>([]);
+
+  // Mobile Hint State
+  const [showMobileHint, setShowMobileHint] = useState(true);
 
   // Fetch villages list for search
   useEffect(() => {
@@ -32,6 +37,14 @@ export default function JakartaMap() {
         }
       })
       .catch(console.error);
+      
+    // Load recent searches
+    const saved = localStorage.getItem("jakscope_recent_searches");
+    if (saved) {
+      try {
+        setRecentSearches(JSON.parse(saved));
+      } catch (e) {}
+    }
   }, []);
 
   // Handle click outside to close the search dropdown
@@ -44,6 +57,24 @@ export default function JakartaMap() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const saveRecentSearch = (id: number, name: string, districtName: string) => {
+    setRecentSearches(prev => {
+      const filtered = prev.filter(p => p.id !== id);
+      const newRecent = [{id, name, districtName}, ...filtered].slice(0, 5);
+      localStorage.setItem("jakscope_recent_searches", JSON.stringify(newRecent));
+      return newRecent;
+    });
+  };
+
+  const triggerError = (msg: string) => {
+    setErrorMessage(msg);
+    setShakeError(true);
+    setTimeout(() => setShakeError(false), 500);
+    if (navigator.vibrate) {
+      navigator.vibrate(200);
+    }
+  };
 
   // Initialize Map
   useEffect(() => {
@@ -114,17 +145,13 @@ export default function JakartaMap() {
     L.control.zoom({ position: "bottomright" }).addTo(map);
     mapRef.current = map;
 
-
-
-
-
     // Handle Map Click
     const onMapClick = async (e: L.LeafletMouseEvent) => {
       const { lat, lng } = e.latlng;
 
       // Client-side Jakarta boundary check (instant, no network needed)
       if (lat < -6.38 || lat > -6.08 || lng < 106.68 || lng > 106.97) {
-        setErrorMessage("Koordinat berada di luar batas wilayah DKI Jakarta.");
+        triggerError("Koordinat berada di luar batas wilayah DKI Jakarta.");
         return;
       }
 
@@ -144,12 +171,16 @@ export default function JakartaMap() {
         const lookupData = await response.json();
         setStatusMessage(`Ditemukan: Kelurahan ${lookupData.name}! Mengalihkan ke dashboard...`);
         
+        if (lookupData.id && lookupData.name && lookupData.district_name) {
+          saveRecentSearch(lookupData.id, lookupData.name, lookupData.district_name);
+        }
+
         // Navigate
         const slug = lookupData.name.toLowerCase().replace(/[\s_]+/g, '-');
         router.push(`/dashboard/${slug}`);
       } catch (err: any) {
         console.error(err);
-        setErrorMessage(err.message || "Terjadi kesalahan koneksi.");
+        triggerError(err.message || "Terjadi kesalahan koneksi.");
         setLoading(false);
       }
     };
@@ -166,12 +197,14 @@ export default function JakartaMap() {
   }, [router]);
 
   // Handle Search Result Select
-  const handleSelectVillage = async (id: number, name: string) => {
+  const handleSelectVillage = async (id: number, name: string, districtName: string) => {
     setSearchQuery(name);
     setIsSearchOpen(false);
     setLoading(true);
     setErrorMessage(null);
     setStatusMessage(`Mencari titik koordinat Kelurahan ${name}...`);
+    
+    saveRecentSearch(id, name, districtName);
 
     try {
       // Fetch coordinates of the village boundary center
@@ -230,7 +263,7 @@ export default function JakartaMap() {
       console.error("Search selection error:", err);
       const isExplicitBlock = err.message && err.message.includes("0 fasilitas");
       if (isExplicitBlock) {
-        setErrorMessage(err.message);
+        triggerError(err.message);
         setLoading(false);
       } else {
         // Fallback: If OSM API is down or times out, proceed to dashboard anyway
@@ -240,13 +273,9 @@ export default function JakartaMap() {
     }
   };
 
-  // Handle "Pakai lokasi saya" — ask browser geolocation once, then reuse the
-  // same /api/villages/detect endpoint the map-click flow already calls.
-  // Koordinat dari getCurrentPosition() cuma dipakai buat panggilan ini,
-  // tidak disimpan ke Supabase/analytics mana pun.
   const handleUseMyLocation = () => {
     if (!("geolocation" in navigator)) {
-      setErrorMessage("Browser Anda tidak mendukung deteksi lokasi. Silakan cari manual.");
+      triggerError("Browser Anda tidak mendukung deteksi lokasi. Silakan cari manual.");
       return;
     }
 
@@ -271,22 +300,27 @@ export default function JakartaMap() {
 
           const lookupData = await response.json();
           setStatusMessage(`Ditemukan: Kelurahan ${lookupData.name}! Mengalihkan ke dashboard...`);
+          
+          if (lookupData.id && lookupData.name && lookupData.district_name) {
+            saveRecentSearch(lookupData.id, lookupData.name, lookupData.district_name);
+          }
+
           const slug = lookupData.name.toLowerCase().replace(/[\s_]+/g, '-');
           router.push(`/dashboard/${slug}`);
         } catch (err: any) {
           console.error(err);
-          setErrorMessage(err.message || "Gagal mendeteksi kelurahan dari lokasi Anda.");
+          triggerError(err.message || "Gagal mendeteksi kelurahan dari lokasi Anda.");
           setLoading(false);
         }
       },
       (geoError) => {
         setLoading(false);
         if (geoError.code === geoError.PERMISSION_DENIED) {
-          setErrorMessage("Izin lokasi ditolak. Silakan cari kelurahan Anda secara manual.");
+          triggerError("Izin lokasi ditolak. Silakan cari kelurahan Anda secara manual.");
         } else if (geoError.code === geoError.TIMEOUT) {
-          setErrorMessage("Waktu deteksi lokasi habis. Silakan coba lagi atau cari manual.");
+          triggerError("Waktu deteksi lokasi habis. Silakan coba lagi atau cari manual.");
         } else {
-          setErrorMessage("Tidak dapat mengambil lokasi Anda. Silakan cari manual.");
+          triggerError("Tidak dapat mengambil lokasi Anda. Silakan cari manual.");
         }
       },
       { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 }
@@ -304,7 +338,7 @@ export default function JakartaMap() {
   return (
     <div className="relative w-full h-[530px] rounded-3xl overflow-hidden border border-slate-700/60 shadow-2xl">
       {/* Map Container */}
-      <div ref={mapContainerRef} className="w-full h-full z-10 cursor-crosshair" />
+      <div ref={mapContainerRef} className="w-full h-full z-10 cursor-crosshair focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-jakarta-blue/50" tabIndex={0} aria-label="Peta Interaktif Jakarta" />
 
       {/* Floating Helper overlay */}
       <div className="absolute top-4 left-4 z-20 bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-2xl px-5 py-4 shadow-xl max-w-sm pointer-events-none hidden sm:block">
@@ -321,9 +355,26 @@ export default function JakartaMap() {
         </div>
       </div>
 
+      {/* Mobile Hint Toast */}
+      {showMobileHint && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 w-[90%] bg-slate-900/95 backdrop-blur-md border border-jakarta-blue/40 rounded-xl px-4 py-3 shadow-xl flex items-center justify-between sm:hidden animate-fade-in-up">
+          <div className="flex items-center gap-3">
+            <MapPin size={18} className="text-jakarta-blue-light animate-bounce" />
+            <span className="text-xs text-slate-200 font-medium">Tap area mana saja di peta untuk melihat dashboard kelurahan.</span>
+          </div>
+          <button 
+            onClick={() => setShowMobileHint(false)}
+            className="p-1 text-slate-400 hover:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-jakarta-blue"
+            aria-label="Tutup panduan"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
       {/* Floating Search Dropdown overlay */}
       <div className="absolute top-4 right-4 z-20 w-[calc(100vw-2rem)] sm:w-80 max-w-sm" ref={searchRef}>
-        <div className="relative bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-xl shadow-xl p-1 flex items-center">
+        <div className={`relative bg-slate-900/90 backdrop-blur-md border transition-all rounded-xl shadow-xl p-1 flex items-center ${shakeError ? 'border-rose-500 animate-shake' : 'border-slate-800 focus-within:border-jakarta-blue/50'}`}>
           <Search size={18} className="text-slate-400 ml-3 shrink-0" />
           <input
             type="text"
@@ -335,14 +386,17 @@ export default function JakartaMap() {
               setIsSearchOpen(true);
             }}
             className="w-full bg-transparent text-slate-200 placeholder-slate-400 text-xs px-3 py-2.5 focus:outline-none"
+            aria-label="Cari kelurahan"
           />
           {searchQuery && (
             <button
               onClick={() => {
                 setSearchQuery("");
-                setIsSearchOpen(false);
+                setIsSearchOpen(true);
+                searchRef.current?.querySelector('input')?.focus();
               }}
-              className="p-1.5 text-slate-400 hover:text-white rounded-lg transition-colors mr-1"
+              className="p-1.5 text-slate-400 hover:text-white rounded-lg transition-colors mr-1 focus:outline-none focus:ring-2 focus:ring-jakarta-blue"
+              aria-label="Hapus pencarian"
             >
               <X size={14} />
             </button>
@@ -352,35 +406,63 @@ export default function JakartaMap() {
         <button
           onClick={handleUseMyLocation}
           disabled={loading}
-          className="mt-2 w-full flex items-center justify-center gap-2 bg-slate-900/90 backdrop-blur-md border border-slate-800 hover:border-jakarta-blue/60 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-200 hover:text-white shadow-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="mt-2 w-full flex items-center justify-center gap-2 bg-slate-900/90 backdrop-blur-md border border-slate-800 hover:border-jakarta-blue/60 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-200 hover:text-white shadow-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-jakarta-blue"
+          aria-label="Gunakan lokasi saya"
         >
           <LocateFixed size={15} className="text-jakarta-blue-light" />
           Klik di sini untuk melihat lokasi Anda
         </button>
 
         {/* Search Results Dropdown List */}
-        {isSearchOpen && filteredVillages.length > 0 && (
+        {isSearchOpen && (
           <div className="absolute left-0 right-0 mt-2 bg-slate-900/95 backdrop-blur-md border border-slate-800 rounded-xl shadow-xl overflow-hidden max-h-60 overflow-y-auto">
-            {filteredVillages.map((v) => (
-              <button
-                key={v.id}
-                onClick={() => handleSelectVillage(v.id, v.name)}
-                className="w-full text-left px-4 py-3 hover:bg-slate-800/60 border-b border-slate-800/40 last:border-0 transition-colors flex flex-col gap-0.5"
-              >
-                <span className="text-xs font-semibold text-white">
-                  Kelurahan {v.name}
-                </span>
-                <span className="text-[10px] text-slate-400 uppercase tracking-wider">
-                  Kecamatan {v.districtName}
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
+            {searchQuery.trim() === "" && recentSearches.length > 0 && (
+              <div className="py-2">
+                <div className="px-4 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <Clock size={12} />
+                  Pencarian Terakhir
+                </div>
+                {recentSearches.map((v) => (
+                  <button
+                    key={'recent-' + v.id}
+                    onClick={() => handleSelectVillage(v.id, v.name, v.districtName)}
+                    className="w-full text-left px-4 py-2.5 hover:bg-slate-800/60 transition-colors flex flex-col gap-0.5 focus:outline-none focus:bg-slate-800/80"
+                  >
+                    <span className="text-xs font-medium text-slate-300">
+                      Kelurahan {v.name}
+                    </span>
+                    <span className="text-[10px] text-slate-500">
+                      Kecamatan {v.districtName}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+            
+            {searchQuery.trim() !== "" && filteredVillages.length > 0 && (
+              <div className="py-1">
+                {filteredVillages.map((v) => (
+                  <button
+                    key={v.id}
+                    onClick={() => handleSelectVillage(v.id, v.name, v.districtName)}
+                    className="w-full text-left px-4 py-3 hover:bg-slate-800/60 border-b border-slate-800/40 last:border-0 transition-colors flex flex-col gap-0.5 focus:outline-none focus:bg-slate-800/80"
+                  >
+                    <span className="text-xs font-semibold text-white">
+                      Kelurahan {v.name}
+                    </span>
+                    <span className="text-[10px] text-slate-400 uppercase tracking-wider">
+                      Kecamatan {v.districtName}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
 
-        {isSearchOpen && searchQuery.trim() !== "" && filteredVillages.length === 0 && (
-          <div className="absolute left-0 right-0 mt-2 bg-slate-900/95 backdrop-blur-md border border-slate-800 rounded-xl shadow-xl p-4 text-center text-xs text-slate-400">
-            Kelurahan tidak ditemukan
+            {searchQuery.trim() !== "" && filteredVillages.length === 0 && (
+              <div className="p-4 text-center text-xs text-slate-400">
+                Kelurahan tidak ditemukan
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -403,7 +485,8 @@ export default function JakartaMap() {
           <span className="text-xs font-medium leading-relaxed">{errorMessage}</span>
           <button 
             onClick={() => setErrorMessage(null)} 
-            className="text-[10px] uppercase font-bold tracking-wider text-rose-400 hover:text-white ml-2 focus:outline-none"
+            className="text-[10px] uppercase font-bold tracking-wider text-rose-400 hover:text-white ml-2 focus:outline-none focus:underline"
+            aria-label="Tutup pesan error"
           >
             Tutup
           </button>

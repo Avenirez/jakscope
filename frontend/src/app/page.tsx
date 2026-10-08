@@ -17,7 +17,7 @@ export default function LandingPage() {
         <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] rounded-full bg-jakarta-emerald/10 blur-3xl" />
 
         <div className="relative max-w-5xl mx-auto px-6 py-16 md:py-24 text-center">
-          <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-6 opacity-0 animate-fade-in-up">
+          <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-6 opacity-0 animate-fade-in-up text-white">
             Jak
             <span className="bg-gradient-to-r from-jakarta-blue-light to-jakarta-emerald bg-clip-text text-transparent">
               Scope
@@ -28,8 +28,17 @@ export default function LandingPage() {
             Peta interaktif untuk memantau sebaran fasilitas publik di seluruh kelurahan DKI Jakarta secara real-time. Cari kelurahan Anda untuk melihat ketersediaan fasilitas publik seperti sekolah, fasilitas kesehatan, hingga ruang terbuka hijau.
           </p>
 
+          <div className="opacity-0 animate-fade-in-up animate-delay-200 mb-12">
+            <a 
+              href="#explore-map"
+              className="inline-flex items-center justify-center bg-gradient-to-r from-jakarta-blue-light to-jakarta-emerald text-white font-bold px-8 py-4 rounded-full shadow-lg hover:shadow-jakarta-blue/50 transition-all hover:-translate-y-1 active:scale-95 focus:outline-none focus:ring-4 focus:ring-jakarta-blue-light/50"
+            >
+              Mulai Eksplorasi Peta
+            </a>
+          </div>
+
           {/* ===== INTERACTIVE JAKARTA MAP ===== */}
-          <div className="max-w-4xl mx-auto opacity-0 animate-fade-in-up animate-delay-200">
+          <div id="explore-map" className="max-w-4xl mx-auto opacity-0 animate-fade-in-up animate-delay-300">
             <JakartaMap />
           </div>
         </div>
@@ -39,7 +48,7 @@ export default function LandingPage() {
       <section className="max-w-5xl mx-auto px-6 py-20">
         <h2 className="text-2xl md:text-3xl font-bold text-center mb-12">
           Layanan Utama{" "}
-          <span className="text-jakarta-blue-light">Jak<span className="bg-gradient-to-r from-jakarta-blue-light to-jakarta-emerald bg-clip-text text-transparent">Scope</span></span>
+          <span className="text-white">Jak<span className="bg-gradient-to-r from-jakarta-blue-light to-jakarta-emerald bg-clip-text text-transparent">Scope</span></span>
         </h2>
 
         <div className="grid md:grid-cols-3 gap-6">
@@ -80,9 +89,9 @@ export default function LandingPage() {
       </section>
 
       {/* ===== FOOTER ===== */}
-      <footer className="border-t border-slate-800 py-8 text-center text-sm text-slate-500">
+      <footer className="border-t border-slate-800 py-8 text-center text-sm text-slate-400">
         <p>
-          Jak<span className="bg-gradient-to-r from-jakarta-blue-light to-jakarta-emerald bg-clip-text text-transparent">Scope</span> © {new Date().getFullYear()} JakScope. All rights reserved.
+          <span className="text-white">Jak</span><span className="bg-gradient-to-r from-jakarta-blue-light to-jakarta-emerald bg-clip-text text-transparent">Scope</span> © {new Date().getFullYear()} JakScope. All rights reserved.
         </p>
         <p className="mt-1">
           Data bersumber dari database kolaboratif{" "}
