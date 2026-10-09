@@ -24,6 +24,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const [reviews, setReviews] = useState<MyReview[]>([]);
   const [loading, setLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     if (user === null) {
@@ -72,12 +73,13 @@ export default function ProfilePage() {
     <main className="min-h-screen max-w-4xl mx-auto px-6 py-12">
       {/* Profile Header */}
       <div className="glass-card p-8 mb-8 flex flex-col md:flex-row items-center gap-6 animate-fade-in-up">
-        {user.user_metadata?.avatar_url ? (
+        {user.user_metadata?.avatar_url && !imageError ? (
           <img
-            src={user.user_metadata.avatar_url}
+            src={user.user_metadata.avatar_url || user.user_metadata.picture}
             alt="Profile Avatar"
-            className="w-24 h-24 rounded-full border-4 border-slate-700 shadow-xl"
+            className="w-24 h-24 rounded-full border-4 border-slate-700 shadow-xl object-cover"
             referrerPolicy="no-referrer"
+            onError={() => setImageError(true)}
           />
         ) : (
           <div className="w-24 h-24 rounded-full bg-slate-800 flex items-center justify-center border-4 border-slate-700 shadow-xl">
