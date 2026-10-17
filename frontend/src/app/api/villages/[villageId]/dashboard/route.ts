@@ -37,7 +37,7 @@ export async function GET(
     }
 
     const villageName = info.name;
-    const districtName = (info.districts as any)?.name || "—";
+    const districtName = (info.districts as any)?.name || "-";
 
     return NextResponse.json({
       village_id: info.id,

@@ -96,7 +96,7 @@ export default function LandingPage() {
                 href="#direktori-wilayah"
                 className="inline-flex items-center justify-center bg-slate-900/80 hover:bg-slate-800 text-slate-200 font-semibold px-6 py-4 rounded-full border border-slate-700 transition-all"
               >
-                Lihat Direktori Kelurahan ↓
+                Lihat Direktori Kelurahan
               </a>
             </div>
 
@@ -205,7 +205,7 @@ export default function LandingPage() {
               <span className="bg-gradient-to-r from-jakarta-blue-light to-jakarta-emerald bg-clip-text text-transparent">
                 Scope
               </span>{" "}
-              © {new Date().getFullYear()} JakScope. All rights reserved.
+              (c) {new Date().getFullYear()} JakScope. All rights reserved.
             </p>
             <p className="text-xs text-slate-500">
               Data spasial bersumber dari database kolaboratif{" "}
@@ -223,11 +223,11 @@ export default function LandingPage() {
               <Link href="/sitemap.xml" className="hover:text-slate-300 transition-colors">
                 Sitemap XML
               </Link>
-              <span>·</span>
+              <span className="text-slate-700">|</span>
               <a href="/llms.txt" target="_blank" className="hover:text-slate-300 transition-colors">
                 llms.txt (AI Standard)
               </a>
-              <span>·</span>
+              <span className="text-slate-700">|</span>
               <a href="/llms-full.txt" target="_blank" className="hover:text-slate-300 transition-colors">
                 llms-full.txt
               </a>

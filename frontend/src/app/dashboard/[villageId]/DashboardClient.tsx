@@ -239,7 +239,7 @@ export default function DashboardClient({
               Kelurahan {data.village_name}
             </h1>
             <p className="text-xs text-slate-400">
-              Kecamatan {data.district_name} · DKI Jakarta
+              Kecamatan {data.district_name}, DKI Jakarta
             </p>
           </div>
 
@@ -502,7 +502,7 @@ export default function DashboardClient({
         <span className="bg-gradient-to-r from-jakarta-blue-light to-jakarta-emerald bg-clip-text text-transparent">
           Scope
         </span>{" "}
-        · Data spasial dari{" "}
+        - Data spasial dari{" "}
         <a
           href="https://www.openstreetmap.org"
           target="_blank"
