@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Map, ListFilter, Database, Compass, Sparkles, Shield, HeartPulse, GraduationCap } from "lucide-react";
 import MapWrapper from "@/components/map-wrapper";
 import VillageDirectory from "@/components/village-directory";
@@ -68,12 +67,6 @@ export default function LandingPage() {
           <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] rounded-full bg-jakarta-emerald/10 blur-3xl pointer-events-none" />
 
           <div className="relative max-w-5xl mx-auto px-6 py-16 md:py-24 text-center">
-            {/* Top Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/80 border border-slate-700/80 text-xs font-semibold text-slate-300 mb-6 shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-jakarta-emerald animate-pulse" />
-              <span>Mencakup 267 Kelurahan & 44 Kecamatan di DKI Jakarta</span>
-            </div>
-
             <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-6 text-white tracking-tight">
               Jak
               <span className="bg-gradient-to-r from-jakarta-blue-light to-jakarta-emerald bg-clip-text text-transparent">
@@ -219,19 +212,6 @@ export default function LandingPage() {
               </a>{" "}
               (ODbL).
             </p>
-            <div className="flex items-center justify-center gap-4 text-xs text-slate-500 pt-2">
-              <Link href="/sitemap.xml" className="hover:text-slate-300 transition-colors">
-                Sitemap XML
-              </Link>
-              <span className="text-slate-700">|</span>
-              <a href="/llms.txt" target="_blank" className="hover:text-slate-300 transition-colors">
-                llms.txt (AI Standard)
-              </a>
-              <span className="text-slate-700">|</span>
-              <a href="/llms-full.txt" target="_blank" className="hover:text-slate-300 transition-colors">
-                llms-full.txt
-              </a>
-            </div>
           </div>
         </footer>
       </main>
