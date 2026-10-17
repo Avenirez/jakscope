@@ -1,40 +1,42 @@
-import { MetadataRoute } from 'next'
-import { supabase } from "@/lib/supabase"
+import { MetadataRoute } from 'next';
+import { supabase } from "@/lib/supabase";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://jakscope.my.id';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://jakscope.my.id';
 
-  // Rute statis (Halaman utama dan profil)
-  const staticRoutes = [
+  // Static routes
+  const staticRoutes: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
       lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 1,
+      changeFrequency: 'daily',
+      priority: 1.0,
+      images: [`${baseUrl}/og-image.png`],
     },
     {
       url: `${baseUrl}/profile`,
       lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.5,
+      changeFrequency: 'monthly',
+      priority: 0.4,
     },
   ];
 
   try {
-    // Ambil semua kelurahan dari Supabase untuk di-index oleh Google
+    // Ambil data kelurahan untuk di-index oleh Google & crawler AI
     const { data: villages } = await supabase
       .from("villages")
-      .select("name");
+      .select("name, created_at");
 
     if (!villages) return staticRoutes;
 
-    const dynamicRoutes = villages.map((village) => {
+    const dynamicRoutes: MetadataRoute.Sitemap = villages.map((village) => {
       const slug = village.name.toLowerCase().replace(/[\s_]+/g, '-');
       return {
         url: `${baseUrl}/dashboard/${slug}`,
-        lastModified: new Date(),
-        changeFrequency: 'daily' as const,
+        lastModified: village.created_at ? new Date(village.created_at) : new Date(),
+        changeFrequency: 'weekly',
         priority: 0.8,
+        images: [`${baseUrl}/og-image.png`],
       };
     });
 

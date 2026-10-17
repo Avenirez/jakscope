@@ -1,0 +1,62 @@
+export function slugify(name: string): string {
+  return name.toLowerCase().replace(/[\s_]+/g, "-");
+}
+
+export function toTitleCase(str: string): string {
+  return str.toLowerCase().replace(/(?:^|\s|-)\S/g, (m) => m.toUpperCase());
+}
+
+export const JAKARTA_HIERARCHY: Record<string, Record<string, string[]>> = {
+  "Jakarta Pusat": {
+    "Gambir": ["Gambir", "Cideng", "Petojo Utara", "Petojo Selatan", "Kebon Kelapa", "Duri Pulo"],
+    "Senen": ["Senen", "Kwitang", "Kenari", "Paseban", "Kramat", "Bungur"],
+    "Sawah Besar": ["Pasar Baru", "Gunung Sahari Utara", "Mangga Dua Selatan", "Karang Anyar", "Kartini"],
+    "Kemayoran": ["Kemayoran", "Gunung Sahari Selatan", "Utan Panjang", "Harapan Mulya", "Kebon Kosong", "Cempaka Baru", "Sumur Batu", "Serdang"],
+    "Menteng": ["Menteng", "Pegangsaan", "Cikini", "Gondangdia", "Kebon Sirih"],
+    "Tanah Abang": ["Bendungan Hilir", "Karet Tengsin", "Kebon Melati", "Kebon Kacang", "Kampung Bali", "Petamburan", "Gelora"],
+    "Cempaka Putih": ["Cempaka Putih Timur", "Cempaka Putih Barat", "Rawasari"],
+    "Johar Baru": ["Johar Baru", "Kampung Rawa", "Galur", "Tanah Tinggi"]
+  },
+  "Jakarta Utara": {
+    "Penjaringan": ["Penjaringan", "Pejagalan", "Pluit", "Kapuk Muara", "Kamal Muara"],
+    "Tanjung Priok": ["Tanjung Priok", "Kebon Bawang", "Sungai Bambu", "Papanggo", "Warakas", "Sunter Agung", "Sunter Jaya"],
+    "Koja": ["Koja", "Lagoa", "Rawa Badak Utara", "Rawa Badak Selatan", "Tugu Utara", "Tugu Selatan"],
+    "Cilincing": ["Cilincing", "Kalibaru", "Marunda", "Semper Timur", "Semper Barat", "Sukapura", "Rorotan"],
+    "Pademangan": ["Pademangan Timur", "Pademangan Barat", "Ancol"],
+    "Kelapa Gading": ["Kelapa Gading Timur", "Kelapa Gading Barat", "Pegangsaan Dua"]
+  },
+  "Jakarta Barat": {
+    "Cengkareng": ["Cengkareng Barat", "Cengkareng Timur", "Duri Kosambi", "Kapuk", "Kedaung Kali Angke", "Rawa Buaya"],
+    "Grogol Petamburan": ["Grogol", "Jelambar", "Jelambar Baru", "Wijaya Kusuma", "Tanjung Duren Utara", "Tanjung Duren Selatan", "Tomang"],
+    "Kalideres": ["Kalideres", "Semanan", "Pegadungan", "Tegal Alur", "Kamal"],
+    "Kebon Jeruk": ["Kebon Jeruk", "Duri Kepa", "Kedoya Utara", "Kedoya Selatan", "Sukabumi Utara", "Sukabumi Selatan", "Kelapa Dua"],
+    "Kembangan": ["Kembangan Utara", "Kembangan Selatan", "Meruya Utara", "Meruya Selatan", "Srengseng", "Joglo"],
+    "Palmerah": ["Palmerah", "Slipi", "Kota Bambu Utara", "Kota Bambu Selatan", "Jatipulo", "Kemanggisan"],
+    "Taman Sari": ["Taman Sari", "Krukut", "Maphar", "Tangki", "Mangga Besar", "Keagungan", "Glodok", "Pinangsia"],
+    "Tambora": ["Tambora", "Tanah Sereal", "Roa Malaka", "Pekojan", "Jembatan Lima", "Jembatan Besi", "Angke", "Duri Utara", "Duri Selatan", "Krendang", "Kali Anyar"]
+  },
+  "Jakarta Selatan": {
+    "Cilandak": ["Cilandak Barat", "Gandaria Selatan", "Pondok Labu", "Cipete Selatan", "Lebak Bulus"],
+    "Kebayoran Baru": ["Selong", "Gunung", "Kramat Pela", "Gandaria Utara", "Cipete Utara", "Pulo", "Melawai", "Petogogan", "Rawa Barat", "Senayan"],
+    "Kebayoran Lama": ["Kebayoran Lama Utara", "Kebayoran Lama Selatan", "Pondok Pinang", "Pondok Indah", "Cipulir", "Grogol Utara", "Grogol Selatan"],
+    "Mampang Prapatan": ["Mampang Prapatan", "Bangka", "Pela Mampang", "Tegal Parang", "Kuningan Barat"],
+    "Pancoran": ["Pancoran", "Kalibata", "Rawajati", "Duren Tiga", "Cikoko", "Pengadegan"],
+    "Pasar Minggu": ["Pasar Minggu", "Pejaten Barat", "Pejaten Timur", "Jati Padang", "Ragunan", "Cilandak Timur", "Kebagusan"],
+    "Pesanggrahan": ["Pesanggrahan", "Bintaro", "Petukangan Utara", "Petukangan Selatan", "Ulujami"],
+    "Setiabudi": ["Setiabudi", "Karet", "Karet Semanggi", "Karet Kuningan", "Kuningan Timur", "Menteng Atas", "Pasar Manggis", "Guntur"],
+    "Tebet": ["Tebet Barat", "Tebet Timur", "Kebon Baru", "Bukit Duri", "Manggarai", "Manggarai Selatan", "Menteng Dalam"],
+    "Jagakarsa": ["Jagakarsa", "Srengseng Sawah", "Ciganjur", "Lenteng Agung", "Tanjung Barat", "Cipedak"]
+  },
+  "Jakarta Timur": {
+    "Cakung": ["Cakung Barat", "Cakung Timur", "Rawa Terate", "Penggilingan", "Pulo Gebang", "Ujung Menteng", "Jatinegara"],
+    "Duren Sawit": ["Duren Sawit", "Pondok Bambu", "Pondok Kelapa", "Pondok Kopi", "Malaka Jaya", "Malaka Sari", "Klender"],
+    "Jatinegara": ["Balimester", "Kampung Melayu", "Bidaracina", "Cipinang Cempedak", "Cipinang Muara", "Cipinang Besar Utara", "Cipinang Besar Selatan", "Rawa Bunga"],
+    "Kramat Jati": ["Kramat Jati", "Batu Ampar", "Balekambang", "Dukuh", "Cawang", "Cililitan", "Tengah"],
+    "Makasar": ["Makasar", "Pinang Ranti", "Halim Perdanakusuma", "Cipinang Melayu", "Kebon Pala"],
+    "Matraman": ["Pisangan Baru", "Utan Kayu Selatan", "Utan Kayu Utara", "Kayu Manis", "Pal Meriam", "Kebon Manggis"],
+    "Pasar Rebo": ["Pekayon", "Gedong", "Cijantung", "Kalisari", "Baru"],
+    "Pulo Gadung": ["Pulo Gadung", "Kayu Putih", "Jati", "Rawamangun", "Pisangan Timur", "Cipinang", "Jatinegara Kaum"],
+    "Ciracas": ["Ciracas", "Cibubur", "Kelapa Dua Wetan", "Susukan", "Rambutan"],
+    "Cipayung": ["Cipayung", "Cilangkap", "Pondok Ranggon", "Munjul", "Setu", "Bambu Apus", "Lubang Buaya", "Ceger"]
+  }
+};
