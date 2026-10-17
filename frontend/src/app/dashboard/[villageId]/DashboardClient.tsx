@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -67,6 +67,9 @@ export default function DashboardClient({
   const [selectedSectorFilter, setSelectedSectorFilter] = useState<string>("all");
   const [mapError, setMapError] = useState<string | null>(null);
 
+  // Pagination for facility cards (renders 12 initially to keep DOM lightweight)
+  const [visibleCount, setVisibleCount] = useState<number>(12);
+
   // State for Live Tracking
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
 
@@ -127,24 +130,33 @@ export default function DashboardClient({
       .finally(() => setLoadingMap(false));
   }, [data?.village_name, villageId, initialFacilities, initialCenter]);
 
-  // Derived sector statistics
-  const currentSectorCounts: SectorCounts = initialSectorCounts || {
-    health: facilities.filter((f) => f.sector === "health").length,
-    education: facilities.filter((f) => f.sector === "education").length,
-    recreation: facilities.filter((f) => f.sector === "recreation").length,
-    transport: facilities.filter((f) => f.sector === "transport").length,
-    public_services: facilities.filter((f) => f.sector === "public_services").length,
-    worship: facilities.filter((f) => f.sector === "worship").length,
-    market: facilities.filter((f) => f.sector === "market").length,
-  };
+  // Derived sector statistics (memoized)
+  const currentSectorCounts: SectorCounts = useMemo(() => {
+    if (initialSectorCounts) return initialSectorCounts;
+    return {
+      health: facilities.filter((f) => f.sector === "health").length,
+      education: facilities.filter((f) => f.sector === "education").length,
+      recreation: facilities.filter((f) => f.sector === "recreation").length,
+      transport: facilities.filter((f) => f.sector === "transport").length,
+      public_services: facilities.filter((f) => f.sector === "public_services").length,
+      worship: facilities.filter((f) => f.sector === "worship").length,
+      market: facilities.filter((f) => f.sector === "market").length,
+    };
+  }, [initialSectorCounts, facilities]);
 
   const totalFacilities = facilities.length;
 
-  // Filter facilities based on selectedSectorFilter
-  const filteredFacilities =
-    selectedSectorFilter === "all"
+  // Filter facilities based on selectedSectorFilter (memoized)
+  const filteredFacilities = useMemo(() => {
+    return selectedSectorFilter === "all"
       ? facilities
       : facilities.filter((f) => f.sector === selectedSectorFilter);
+  }, [facilities, selectedSectorFilter]);
+
+  // Sliced for fast DOM rendering
+  const displayedFacilities = useMemo(() => {
+    return filteredFacilities.slice(0, visibleCount);
+  }, [filteredFacilities, visibleCount]);
 
   // Sector stats config
   const sectorItems = [
@@ -422,8 +434,8 @@ export default function DashboardClient({
               )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-[360px] overflow-y-auto pr-1">
-              {filteredFacilities.map((facility) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {displayedFacilities.map((facility) => (
                 <div
                   key={`${facility.id}-${facility.name}`}
                   className="p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-700 transition-colors flex flex-col justify-between"
@@ -452,6 +464,17 @@ export default function DashboardClient({
                 </div>
               ))}
             </div>
+
+            {filteredFacilities.length > visibleCount && (
+              <div className="text-center mt-4 pt-3 border-t border-slate-800/60">
+                <button
+                  onClick={() => setVisibleCount((prev) => prev + 24)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/80 transition-colors"
+                >
+                  Tampilkan Lebih Banyak ({filteredFacilities.length - visibleCount} fasilitas tersisa)
+                </button>
+              </div>
+            )}
           </section>
         )}
 

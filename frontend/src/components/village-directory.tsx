@@ -2,12 +2,12 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { Search, MapPin, Building2, ChevronRight, Compass } from "lucide-react";
+import { Search, MapPin, Building2, Compass } from "lucide-react";
 import { JAKARTA_HIERARCHY, slugify } from "@/core/constants/jakarta-hierarchy";
 
 export default function VillageDirectory() {
   const cities = Object.keys(JAKARTA_HIERARCHY);
-  const [selectedCity, setSelectedCity] = useState<string>("Semua");
+  const [selectedCity, setSelectedCity] = useState<string>("Jakarta Pusat");
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredData = useMemo(() => {
@@ -15,7 +15,7 @@ export default function VillageDirectory() {
     const result: Record<string, Record<string, string[]>> = {};
 
     for (const [city, districts] of Object.entries(JAKARTA_HIERARCHY)) {
-      if (selectedCity !== "Semua" && city !== selectedCity) {
+      if (!q && selectedCity !== "Semua" && city !== selectedCity) {
         continue;
       }
 
@@ -50,13 +50,13 @@ export default function VillageDirectory() {
       <div className="text-center max-w-3xl mx-auto mb-10">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-jakarta-blue/10 border border-jakarta-blue/20 text-jakarta-blue-light text-xs font-semibold mb-3">
           <Compass size={14} />
-          Direktori Lengkap Wilayah
+          Direktori Wilayah
         </div>
         <h2 className="text-2xl md:text-4xl font-extrabold text-white">
-          Jelajahi 267 Kelurahan di DKI Jakarta
+          Direktori 267 Kelurahan DKI Jakarta
         </h2>
         <p className="text-sm md:text-base text-slate-400 mt-2">
-          Pilih kota administrasi atau cari kelurahan Anda untuk melihat sebaran fasilitas publik, sekolah, rumah sakit, puskesmas, dan ruang terbuka hijau.
+          Pilih kota administrasi atau gunakan pencarian untuk langsung membuka data fasilitas publik di kelurahan tujuan.
         </p>
 
         {/* Search input */}
@@ -72,21 +72,23 @@ export default function VillageDirectory() {
         </div>
 
         {/* City Filter Tabs */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mt-6">
-          {["Semua", ...cities].map((city) => (
-            <button
-              key={city}
-              onClick={() => setSelectedCity(city)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all ${
-                selectedCity === city
-                  ? "bg-jakarta-blue-light text-slate-950 border-jakarta-blue-light shadow-md shadow-jakarta-blue/20"
-                  : "bg-slate-900/60 text-slate-400 border-slate-800 hover:text-white hover:border-slate-700"
-              }`}
-            >
-              {city}
-            </button>
-          ))}
-        </div>
+        {!searchQuery && (
+          <div className="flex flex-wrap items-center justify-center gap-2 mt-6">
+            {["Jakarta Pusat", "Jakarta Utara", "Jakarta Barat", "Jakarta Selatan", "Jakarta Timur", "Semua"].map((city) => (
+              <button
+                key={city}
+                onClick={() => setSelectedCity(city)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                  selectedCity === city
+                    ? "bg-jakarta-blue-light text-slate-950 border-jakarta-blue-light shadow-md shadow-jakarta-blue/20"
+                    : "bg-slate-900/60 text-slate-400 border-slate-800 hover:text-white hover:border-slate-700"
+                }`}
+              >
+                {city}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Directory Grid */}
@@ -94,7 +96,7 @@ export default function VillageDirectory() {
         {Object.entries(filteredData).map(([city, districts]) => (
           <div key={city} className="space-y-4">
             <h3 className="text-lg font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-2">
-              <Building2 size={20} className="text-jakarta-blue-light" />
+              <Building2 size={18} className="text-jakarta-blue-light" />
               {city}
               <span className="text-xs font-normal text-slate-500">
                 ({Object.keys(districts).length} Kecamatan)
@@ -106,7 +108,7 @@ export default function VillageDirectory() {
                 <div
                   key={district}
                   id={`kecamatan-${slugify(district)}`}
-                  className="glass-card p-4 rounded-2xl hover:border-slate-700 transition-colors"
+                  className="glass-card p-4 rounded-2xl border border-slate-800/80"
                 >
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="text-sm font-bold text-slate-200 flex items-center gap-1.5">
@@ -114,7 +116,7 @@ export default function VillageDirectory() {
                       Kecamatan {district}
                     </h4>
                     <span className="text-[10px] font-semibold text-slate-400 px-2 py-0.5 rounded-full bg-slate-800">
-                      {villages.length} Kelurahan
+                      {villages.length}
                     </span>
                   </div>
 
@@ -123,13 +125,10 @@ export default function VillageDirectory() {
                       <Link
                         key={vil}
                         href={`/dashboard/${slugify(vil)}`}
-                        className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800/80 hover:border-jakarta-blue-light/50 transition-all group"
+                        prefetch={false}
+                        className="text-xs px-2.5 py-1 rounded-lg bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800/80 hover:border-jakarta-blue-light/50 transition-colors"
                       >
-                        <span>{vil}</span>
-                        <ChevronRight
-                          size={12}
-                          className="text-slate-500 group-hover:text-jakarta-blue-light transition-colors"
-                        />
+                        {vil}
                       </Link>
                     ))}
                   </div>
