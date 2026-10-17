@@ -146,28 +146,43 @@ async function prewarmVillage(villageName: string): Promise<"ok" | "skip" | "fai
   }
  
   try {
-    const relationQuery = `
-      [out:json][timeout:10];
-      relation["name"="${titleCaseName}"]["admin_level"~"7|8"];
-      out center;
-    `;
-    const relationData = await queryOverpass(relationQuery);
-    const relationEl = (relationData.elements || []).find((el: any) => el.type === "relation" && el.center);
- 
     let center: [number, number] | null = null;
-    if (relationEl?.center) {
-      center = [relationEl.center.lat, relationEl.center.lon];
-      const { error: centerError } = await supabase
-        .from("villages")
-        .update({ center_lat: center[0], center_lon: center[1] })
-        .eq("name", villageName.toUpperCase());
-      if (centerError) {
-        console.warn(`  ! Gagal simpan center untuk ${titleCaseName}:`, centerError.message);
+
+    // 1. Check permanent center from villages table first
+    const { data: vRow } = await supabase
+      .from("villages")
+      .select("center_lat, center_lon")
+      .eq("name", villageName.toUpperCase())
+      .maybeSingle();
+
+    if (vRow?.center_lat && vRow?.center_lon) {
+      center = [vRow.center_lat, vRow.center_lon];
+    } else {
+      const relationQuery = `
+        [out:json][timeout:10];
+        relation["name"="${titleCaseName}"]["admin_level"~"7|8"];
+        out center;
+      `;
+      try {
+        const relationData = await queryOverpass(relationQuery);
+        const relationEl = (relationData.elements || []).find((el: any) => el.type === "relation" && el.center);
+        if (relationEl?.center) {
+          center = [relationEl.center.lat, relationEl.center.lon];
+          const { error: centerError } = await supabase
+            .from("villages")
+            .update({ center_lat: center[0], center_lon: center[1] })
+            .eq("name", villageName.toUpperCase());
+          if (centerError) {
+            console.warn(`  ! Gagal simpan center untuk ${titleCaseName}:`, centerError.message);
+          }
+        }
+      } catch (relErr: any) {
+        console.warn(`  ! Query relation gagal untuk ${titleCaseName}:`, relErr.message);
       }
     }
- 
+
     if (!center) {
-      console.warn(`  ! No relation center found for ${titleCaseName}, skipping facilities fetch`);
+      console.warn(`  ! No center found for ${titleCaseName}, skipping facilities fetch`);
       return "fail";
     }
  

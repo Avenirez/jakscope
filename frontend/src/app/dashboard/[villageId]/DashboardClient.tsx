@@ -99,6 +99,16 @@ export default function DashboardClient({
     };
   }, []);
 
+  // Synchronize state if props change on route transition
+  useEffect(() => {
+    if (initialFacilities && initialFacilities.length > 0) {
+      setFacilities(initialFacilities);
+    }
+    if (initialCenter) {
+      setVillageCenter(initialCenter);
+    }
+  }, [initialFacilities, initialCenter]);
+
   // Fetch real facilities from OpenStreetMap only if not already provided from server cache
   useEffect(() => {
     if (!data?.village_name) return;
@@ -132,16 +142,28 @@ export default function DashboardClient({
 
   // Derived sector statistics (memoized)
   const currentSectorCounts: SectorCounts = useMemo(() => {
-    if (initialSectorCounts) return initialSectorCounts;
-    return {
-      health: facilities.filter((f) => f.sector === "health").length,
-      education: facilities.filter((f) => f.sector === "education").length,
-      recreation: facilities.filter((f) => f.sector === "recreation").length,
-      transport: facilities.filter((f) => f.sector === "transport").length,
-      public_services: facilities.filter((f) => f.sector === "public_services").length,
-      worship: facilities.filter((f) => f.sector === "worship").length,
-      market: facilities.filter((f) => f.sector === "market").length,
-    };
+    if (facilities.length > 0) {
+      return {
+        health: facilities.filter((f) => f.sector === "health").length,
+        education: facilities.filter((f) => f.sector === "education").length,
+        recreation: facilities.filter((f) => f.sector === "recreation").length,
+        transport: facilities.filter((f) => f.sector === "transport").length,
+        public_services: facilities.filter((f) => f.sector === "public_services").length,
+        worship: facilities.filter((f) => f.sector === "worship").length,
+        market: facilities.filter((f) => f.sector === "market").length,
+      };
+    }
+    return (
+      initialSectorCounts || {
+        health: 0,
+        education: 0,
+        recreation: 0,
+        transport: 0,
+        public_services: 0,
+        worship: 0,
+        market: 0,
+      }
+    );
   }, [initialSectorCounts, facilities]);
 
   const totalFacilities = facilities.length;
