@@ -15,12 +15,9 @@ jobs:
           SUPABASE_URL="${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}"
           ANON_KEY="${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}"
           
-          # Fallback jika GitHub Secrets belum diisi
-          if [ -z "$SUPABASE_URL" ]; then
-            SUPABASE_URL="https://urezyxwovgycpzcfvwko.supabase.co"
-          fi
-          if [ -z "$ANON_KEY" ]; then
-            ANON_KEY="your-supabase-anon-key"
+          if [ -z "$SUPABASE_URL" ] || [ -z "$ANON_KEY" ]; then
+            echo "Error: NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY secret is missing."
+            exit 1
           fi
           
           echo "Pinging Supabase REST API & PostgreSQL query..."
