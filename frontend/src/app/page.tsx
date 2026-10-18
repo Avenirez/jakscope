@@ -194,11 +194,12 @@ export default function LandingPage() {
         <footer className="border-t border-slate-800 py-10 text-center text-sm text-slate-400">
           <div className="max-w-5xl mx-auto px-6 space-y-3">
             <p className="font-medium text-slate-300">
+              (c) {new Date().getFullYear()}{" "}
               <span className="text-white">Jak</span>
               <span className="bg-gradient-to-r from-jakarta-blue-light to-jakarta-emerald bg-clip-text text-transparent">
                 Scope
-              </span>{" "}
-              (c) {new Date().getFullYear()} JakScope. All rights reserved.
+              </span>
+              . All rights reserved.
             </p>
             <p className="text-xs text-slate-500">
               Data spasial bersumber dari database kolaboratif{" "}
