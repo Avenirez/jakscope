@@ -69,6 +69,10 @@ jobs:
             if [ -s "$BACKUP_FILE" ]; then
               echo "Backup fallback via Supabase API berhasil!"
               BACKUP_SUCCESS=true
+            elif [ -s "frontend/$BACKUP_FILE" ]; then
+              mv "frontend/$BACKUP_FILE" "$BACKUP_FILE"
+              echo "Backup fallback via Supabase API berhasil!"
+              BACKUP_SUCCESS=true
             fi
           fi
 

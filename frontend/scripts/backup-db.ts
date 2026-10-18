@@ -106,7 +106,8 @@ export async function runBackup(outputFilePath?: string) {
 }
 
 if (require.main === module || process.argv[1]?.includes("backup-db")) {
-  runBackup().catch((err) => {
+  const targetArg = process.argv[2] ? path.resolve(process.cwd(), process.argv[2]) : undefined;
+  runBackup(targetArg).catch((err) => {
     console.error("Backup failed:", err);
     process.exit(1);
   });
