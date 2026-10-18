@@ -4,7 +4,7 @@
 JakScope adalah portal transparansi dan direktori fasilitas publik DKI Jakarta berbasis data terbuka (OpenStreetMap) yang mencakup 267 kelurahan pada 44 kecamatan di 5 wilayah Kota Administrasi.
 
 Situs: https://jakscope.my.id
-Pembuat: JakScope
+Pembuat: Tim JakScope
 Lisensi Data: Open Database License (ODbL)
 
 ---

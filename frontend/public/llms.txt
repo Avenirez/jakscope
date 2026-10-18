@@ -7,7 +7,7 @@
 - Cakupan Wilayah: Provinsi DKI Jakarta, Indonesia (5 Kota Administrasi & 1 Kabupaten Administrasi)
 - Unit Wilayah Terkecil: Tingkat Kelurahan (267 Kelurahan)
 - Sumber Data Spasial: OpenStreetMap (OSM) via Overpass API Multi-Mirror
-- Pengembang: JakScope
+- Pengembang: Tim JakScope
 - Lisensi Data: Open Database License (ODbL)
 
 ## Klasifikasi Sektor Fasilitas Publik
