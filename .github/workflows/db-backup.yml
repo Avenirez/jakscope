@@ -10,31 +10,79 @@ jobs:
   backup:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Node.js dependencies
+        run: |
+          cd frontend
+          npm ci
+
       - name: Install PostgreSQL Client
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
 
       - name: Backup Supabase Database
         env:
-          # Pastikan Anda menambahkan DATABASE_URL ke GitHub Secrets Anda!
-          # Formatnya bisa didapat di Supabase Dashboard -> Project Settings -> Database -> Connection string (URI)
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          if [ -z "$DATABASE_URL" ]; then
-            echo "Error: DATABASE_URL secret is not set!"
+          BACKUP_FILE="jakscope-backup-$(date +'%Y-%m-%d').sql"
+          BACKUP_SUCCESS=false
+
+          # 1. Coba pg_dump jika DATABASE_URL tersedia
+          if [ -n "$DATABASE_URL" ]; then
+            TARGET_URL="$DATABASE_URL"
+
+            # Jika URL menggunakan direct connection db.*.supabase.co (IPv6 only),
+            # alihkan otomatis ke IPv4 Session Pooler Supabase
+            if echo "$TARGET_URL" | grep -q "@db\."; then
+              echo "Mendeteksi direct connection string (IPv6). Mencoba mengalihkan ke IPv4 Session Pooler..."
+              REWRITTEN_URL=$(echo "$TARGET_URL" | sed -E 's|postgresql://([^:]+):([^@]+)@db\.([^\.]+)\.supabase\.co:5432/([^?]+)|postgresql://\1.\3:\2@aws-0-ap-southeast-1.pooler.supabase.com:5432/\4|')
+              TARGET_URL="$REWRITTEN_URL"
+            fi
+
+            echo "Mencoba backup via pg_dump..."
+            if pg_dump "$TARGET_URL" --clean --if-exists --no-owner --no-privileges > "$BACKUP_FILE" 2>/dev/null; then
+              if [ -s "$BACKUP_FILE" ]; then
+                echo "Backup via pg_dump berhasil!"
+                BACKUP_SUCCESS=true
+              fi
+            else
+              echo "pg_dump tidak dapat terhubung langsung ke database."
+            fi
+          fi
+
+          # 2. Fallback otomatis via Node.js API jika pg_dump gagal atau DATABASE_URL belum diatur
+          if [ "$BACKUP_SUCCESS" = false ]; then
+            echo "Menjalankan backup fallback menggunakan Supabase API..."
+            cd frontend
+            npx tsx scripts/backup-db.ts "../$BACKUP_FILE"
+            cd ..
+            if [ -s "$BACKUP_FILE" ]; then
+              echo "Backup fallback via Supabase API berhasil!"
+              BACKUP_SUCCESS=true
+            fi
+          fi
+
+          if [ "$BACKUP_SUCCESS" = true ]; then
+            echo "Proses backup selesai. Ukuran file:"
+            ls -lh "$BACKUP_FILE"
+          else
+            echo "Error: Seluruh metode backup gagal."
             exit 1
           fi
-          
-          # Membuat nama file dengan timestamp
-          BACKUP_FILE="jakscope-backup-$(date +'%Y-%m-%d').sql"
-          
-          echo "Memulai proses backup database..."
-          pg_dump "$DATABASE_URL" --clean --if-exists --no-owner --no-privileges > "$BACKUP_FILE"
-          echo "Backup selesai! Ukuran file:"
-          ls -lh "$BACKUP_FILE"
 
       - name: Upload Backup to GitHub Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: supabase-database-backup
           path: '*.sql'
-          retention-days: 90 # Simpan di GitHub selama 90 hari
+          retention-days: 90

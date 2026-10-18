@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "prewarm-osm": "tsx scripts/prewarm-osm-cache.ts"
+    "prewarm-osm": "tsx scripts/prewarm-osm-cache.ts",
+    "backup-db": "tsx scripts/backup-db.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.2",
