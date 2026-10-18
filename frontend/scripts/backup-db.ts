@@ -21,7 +21,13 @@ if (fs.existsSync(envPath)) {
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL || "https://urezyxwovgycpzcfvwko.supabase.co";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SERVICE_ROLE_KEY || "your-supabase-service-role-key";
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+if (typeof (globalThis as any).WebSocket === "undefined") {
+  (globalThis as any).WebSocket = class {};
+}
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  auth: { persistSession: false, autoRefreshToken: false },
+});
 
 function escapeSqlValue(val: any): string {
   if (val === null || val === undefined) return "NULL";
