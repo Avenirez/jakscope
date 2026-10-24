@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { village_id, rating, comment, user_name, user_avatar } = body;
+    const { village_id, rating, comment } = body;
 
     // Server-side validation
     if (!village_id || typeof village_id !== "number") {
@@ -47,16 +47,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Ulasan minimal 10 karakter" }, { status: 400 });
     }
 
+    // Enforce verified identity from authenticated Supabase session to prevent display name & avatar spoofing
+    const verifiedName = 
+      user.user_metadata?.full_name || 
+      user.user_metadata?.name || 
+      (user.email ? user.email.split("@")[0] : null) || 
+      "Warga Jakarta";
+
+    const verifiedAvatar = 
+      user.user_metadata?.avatar_url || 
+      user.user_metadata?.picture || 
+      null;
+
     const { error: dbError } = await supabase
       .from("reviews")
       .upsert(
         {
           village_id,
           user_id: user.id, // Enforce verified user id from token
-          user_name: user_name || user.user_metadata?.full_name || user.email || "Warga Jakarta",
-          user_avatar: user_avatar || user.user_metadata?.avatar_url || null,
+          user_name: verifiedName,
+          user_avatar: verifiedAvatar,
           rating: ratingNum,
-          comment: comment.trim(),
+          comment: comment.trim().slice(0, 1000),
         },
         { onConflict: "village_id,user_id" }
       );
